@@ -5,10 +5,25 @@ using Posix;
 
 public class Iccloader : Object {
     private Gtk.Window window;
+    private Gdk.Pixbuf icon;
     private Gtk.StatusIcon tray_icon;
     private Gtk.Menu menu;
 
     public Iccloader () {
+        // window and tray icon
+        try {
+            icon = Gtk.IconTheme.get_default ().load_icon (Config.PACKAGE, 48, 0);
+        } catch (Error e) {
+            // GLib.stderr.printf ("Could not load the window icon from the default theme: %s\n", e.message);
+            try {
+                icon = new Gdk.Pixbuf.from_file (Path.build_filename (Config2.ICON_DIR, @"$(Config.PACKAGE).svg"));
+            } catch (Error e) {
+                GLib.stderr.printf ("Could not load the window icon from the SVG file: %s\n", e.message);
+            }
+        }
+    }
+
+    public void setup_window () {
         // UI
         var builder = new Gtk.Builder ();
         try {
@@ -20,26 +35,15 @@ public class Iccloader : Object {
         window = builder.get_object ("window1") as Window;
         var label = builder.get_object ("label1") as Label;
         window.title = Config.PACKAGE_NAME;
+        window.icon = icon;
         label.label = "Hello, world!";
         window.destroy.connect (Gtk.main_quit);
-
-        // window icon
-        try {
-            window.icon = Gtk.IconTheme.get_default ().load_icon (Config.PACKAGE, 48, 0);
-        } catch (Error e) {
-            // GLib.stderr.printf ("Could not load the window icon from the default theme: %s\n", e.message);
-            try {
-                window.icon = new Gdk.Pixbuf.from_file (Path.build_filename (Config2.ICON_DIR, @"$(Config.PACKAGE).svg"));
-            } catch (Error e) {
-                GLib.stderr.printf ("Could not load the window icon from the SVG file: %s\n", e.message);
-            }
-        }
 
         window.show_all ();
     }
 
     public void setup_system_tray () {
-        tray_icon = new Gtk.StatusIcon.from_pixbuf (window.icon);
+        tray_icon = new Gtk.StatusIcon.from_pixbuf (icon);
         tray_icon.tooltip_text = Config.PACKAGE_NAME;
         tray_icon.visible = true;
         menu = new Gtk.Menu();
@@ -64,6 +68,7 @@ public class Iccloader : Object {
 int main (string[] args) {
     Gtk.init (ref args);
     var iccloader = new Iccloader ();
+    /*iccloader.setup_window ();*/
     iccloader.setup_system_tray ();
 
     Gtk.main ();
