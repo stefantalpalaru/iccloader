@@ -1,4 +1,4 @@
-AC_INIT([iccloader], [0.1], [stefantalpalaru@yahoo.com], [iccloader], [http://foo.bar])
+AC_INIT([ICC loader], [0.1], [stefantalpalaru@yahoo.com], [iccloader], [http://foo.bar])
 
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADER([config.h])
