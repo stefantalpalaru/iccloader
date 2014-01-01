@@ -51,8 +51,6 @@ public class Iccloader : Object {
         tray_icon.tooltip_text = Config.PACKAGE_NAME;
         tray_icon.visible = true;
         menu = new Gtk.Menu();
-        var menu_foo = new Gtk.ImageMenuItem.with_mnemonic ("_Foo");
-        menu.append (menu_foo);
         var menu_pref = new Gtk.ImageMenuItem.from_stock (Gtk.Stock.PREFERENCES, null);
         menu_pref.activate.connect (show_preferences);
         menu.append (menu_pref);
@@ -108,8 +106,33 @@ public class Iccloader : Object {
         // empty the keyfile
         keyfile = new GLib.KeyFile ();
         var hboxes = pref_vbox.get_children ();
+        var errors = "";
         foreach (var hbox in hboxes) {
-            print (hbox.name + "\n");
+            var box = hbox as Gtk.Box;
+            var elements = box.get_children ();
+            var entry = elements.nth_data (0) as Gtk.Entry;
+            var temp = entry.get_text ();
+            if (temp.length == 0) {
+                errors += "Empty color temperature\n";
+            } else {
+                var temp_val = int.parse (temp);
+                if (temp_val == 0) {
+                    errors += "Invalid color temperature\n";
+                }
+            }
+            var chooser = elements.nth_data (2) as Gtk.FileChooserButton;
+            printf ("%s\n", chooser.show_hidden.to_string ());
+            var filename = chooser.get_filename ();
+            if (filename == null) {
+                errors += "No ICC file selected\n";
+            }
+        }
+        if (errors.length > 0) {
+            var msg = new Gtk.MessageDialog (pref_window, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, errors);
+            msg.response.connect ((response_id) => {
+                msg.destroy ();
+            });
+            msg.show ();
         }
         
         pref_window.close ();
@@ -131,6 +154,7 @@ public class Iccloader : Object {
         hbox.add (label);
         var chooser = new Gtk.FileChooserButton ("Select a corresponding ICC file", Gtk.FileChooserAction.OPEN);
         chooser.expand = true;
+        chooser.show_hidden = true;
         chooser.margin_left = 5;
         var filter = new Gtk.FileFilter ();
         filter.add_pattern ("*.icc");
