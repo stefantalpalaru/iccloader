@@ -66,6 +66,8 @@ public class Iccloader : Object {
             foreach (var temp in temps) {
                 var filename = icc_data.get (temp);
                 var menu_temp = new Gtk.ImageMenuItem.with_label (@"$(temp)°K");
+                // without an image for all these menu items, scrollbars will appear when one is set
+                // for the active item
                 menu_temp.always_show_image = true;
                 menu_temp.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
                 menu_temp.activate.connect (() => {
@@ -79,12 +81,13 @@ public class Iccloader : Object {
             }
             // clear profile
             var menu_clear = new Gtk.ImageMenuItem.with_mnemonic ("_Clear profile");
+            menu_clear.always_show_image = true;
             menu_clear.image = new Gtk.Image.from_stock (Gtk.Stock.CLEAR, Gtk.IconSize.MENU);
             menu_clear.activate.connect (() => {
                 execute_cmd (@"$(dispwin_cmd) -c");
                 tray_icon.tooltip_text = Config.PACKAGE_NAME;
                 active_menu_item_image (menu_clear);
-                set_last_temp_filename (0);
+                set_last_temp (0);
             });
             menu.append (menu_clear);
             // separator
@@ -93,13 +96,12 @@ public class Iccloader : Object {
         }
         // preferences
         var menu_pref = new Gtk.ImageMenuItem.from_stock (Gtk.Stock.PREFERENCES, null);
+        menu_pref.always_show_image = true;
         menu_pref.activate.connect (show_preferences);
         menu.append (menu_pref);
-        // separator
-        var menu_sep = new Gtk.SeparatorMenuItem ();
-        menu.append (menu_sep);
         // quit
         var menu_quit = new Gtk.ImageMenuItem.from_stock (Gtk.Stock.QUIT, null);
+        menu_quit.always_show_image = true;
         menu_quit.activate.connect (Gtk.main_quit);
         menu.append (menu_quit);
         menu.show_all ();
@@ -179,7 +181,7 @@ public class Iccloader : Object {
 
     private void temp_item_activated (int temp, string filename, Gtk.ImageMenuItem menu_item) {
         load_icc (temp, filename);
-        set_last_temp_filename (temp);
+        set_last_temp (temp);
         active_menu_item_image (menu_item);
     }
 
@@ -189,8 +191,18 @@ public class Iccloader : Object {
         }
     }
 
-    private void set_last_temp_filename (int temp) {
+    private void set_last_temp (int temp) {
         last_temp = temp;
+        if (last_temp != 0) {
+            keyfile.set_integer ("Config", "last_temp", last_temp);
+        } else {
+            try {
+                keyfile.remove_key ("Config", "last_temp");
+            } catch (Error e) {
+                // don't care
+            }
+        }
+        
         save_keyfile ();
     }
 
@@ -265,10 +277,12 @@ public class Iccloader : Object {
         chooser.expand = true;
         chooser.show_hidden = true; // doesn't work for some reason
         chooser.margin_left = 5;
-        // only show ICC files
+        // only show ICC and ICM files
         var filter = new Gtk.FileFilter ();
         filter.add_pattern ("*.icc");
         filter.add_pattern ("*.ICC");
+        filter.add_pattern ("*.icm");
+        filter.add_pattern ("*.ICM");
         chooser.set_filter (filter);
         // default directory
         var path = Path.build_filename (Environment.get_user_config_dir(), "color", "icc", "devices", "display");
@@ -354,17 +368,6 @@ public class Iccloader : Object {
     }
 
     private void save_keyfile () {
-        // last temp and filename
-        if (last_temp != 0) {
-            keyfile.set_integer ("Config", "last_temp", last_temp);
-        } else {
-            try {
-                keyfile.remove_key ("Config", "last_temp");
-            } catch (Error e) {
-                // don't care
-            }
-        }
-        
         // write config file
         size_t length;
         var contents = keyfile.to_data (out length);
