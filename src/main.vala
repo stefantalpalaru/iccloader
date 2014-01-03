@@ -22,11 +22,11 @@ public class Iccloader : Object {
     private Gtk.ImageMenuItem active_item;
     private Gtk.Image active_item_image;
     private Gtk.Image old_item_image;
+    private int last_temp;
 
     CompareFunc<int> intcmp_reverse = (a, b) => {
         return (int) (a < b) - (int) (a > b);
     };
-
 
     public Iccloader () {
         // window and tray icon
@@ -69,11 +69,13 @@ public class Iccloader : Object {
                 menu_temp.always_show_image = true;
                 menu_temp.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
                 menu_temp.activate.connect (() => {
-                    // vala can't connect delegates to signals, unfortunately
-                    load_icc (temp, filename);
-                    active_menu_item_image (menu_temp);
+                    // vala can't connect delegates to signals so we always use closures
+                    temp_item_activated (temp, filename, menu_temp);
                 });
                 menu.append (menu_temp);
+                if (temp == last_temp) {
+                    temp_item_activated (temp, filename, menu_temp);
+                }
             }
             // clear profile
             var menu_clear = new Gtk.ImageMenuItem.with_mnemonic ("_Clear profile");
@@ -82,6 +84,7 @@ public class Iccloader : Object {
                 execute_cmd (@"$(dispwin_cmd) -c");
                 tray_icon.tooltip_text = Config.PACKAGE_NAME;
                 active_menu_item_image (menu_clear);
+                set_last_temp_filename (0);
             });
             menu.append (menu_clear);
             // separator
@@ -123,6 +126,11 @@ public class Iccloader : Object {
                     dispwin_cmd = keyfile.get_string (group, "dispwin_cmd");
                 } catch (Error e) {
                     GLib.stderr.printf ("Error loading preferences: %s\n", e.message);
+                }
+                try {
+                    last_temp = keyfile.get_integer (group, "last_temp");
+                } catch (Error e) {
+                    // don't care
                 }
             } else {
                 var temp = int.parse (group);
@@ -169,10 +177,21 @@ public class Iccloader : Object {
         return success;
     }
 
+    private void temp_item_activated (int temp, string filename, Gtk.ImageMenuItem menu_item) {
+        load_icc (temp, filename);
+        set_last_temp_filename (temp);
+        active_menu_item_image (menu_item);
+    }
+
     private void load_icc (int temp, string filename) {
         if (execute_cmd (@"$(dispwin_cmd) -I \"$(filename)\"") && execute_cmd (@"$(dispwin_cmd) -L")) {
             tray_icon.tooltip_text = @"$(temp)°K";
         }
+    }
+
+    private void set_last_temp_filename (int temp) {
+        last_temp = temp;
+        save_keyfile ();
     }
 
     private void active_menu_item_image (Gtk.ImageMenuItem menu_item) {
@@ -270,12 +289,22 @@ public class Iccloader : Object {
         pref_window.show_all ();
     }
 
+    // only used from the Preferences window
     private void save_preferences () {
-        // empty the keyfile
-        keyfile = new KeyFile ();
-        var hboxes = pref_vbox.get_children ();
+        // remove the ICC data from the keyfile
+        foreach (unowned string group in keyfile.get_groups ()) {
+            if (group != "Config") {
+                try {
+                    keyfile.remove_group (group);
+                } catch (Error e) {
+                    // don't care
+                }
+            }
+        }
         var errors = "";
+        
         // ICC data
+        var hboxes = pref_vbox.get_children ();
         bool good_data;
         foreach (var hbox in hboxes) {
             good_data = true;
@@ -303,6 +332,7 @@ public class Iccloader : Object {
                 keyfile.set_string (temp, "filename", filename);
             }
         }
+       
         // dispwin
         var dispwin = dispwin_entry.get_text ();
         if (dispwin.length == 0) {
@@ -313,22 +343,36 @@ public class Iccloader : Object {
             dispwin_cmd = dispwin;
             keyfile.set_string ("Config", "dispwin_cmd", dispwin_cmd);
         }
-        
+
         if (errors.length > 0) {
             message_dialog (errors);
         } else {
-            // write config file
-            size_t length;
-            var contents = keyfile.to_data (out length);
+            save_keyfile ();
+        }
+        pref_window.close ();
+        setup_menu (); // to update the ICC menu items
+    }
+
+    private void save_keyfile () {
+        // last temp and filename
+        if (last_temp != 0) {
+            keyfile.set_integer ("Config", "last_temp", last_temp);
+        } else {
             try {
-                FileUtils.set_contents (config_path, contents, (ssize_t)length);
+                keyfile.remove_key ("Config", "last_temp");
             } catch (Error e) {
-                GLib.stderr.printf ("Could not save the config file: %s\n", e.message);
+                // don't care
             }
         }
         
-        pref_window.close ();
-        setup_menu (); // to update the ICC menu items
+        // write config file
+        size_t length;
+        var contents = keyfile.to_data (out length);
+        try {
+            FileUtils.set_contents (config_path, contents, (ssize_t)length);
+        } catch (Error e) {
+            GLib.stderr.printf ("Could not save the config file: %s\n", e.message);
+        }
     }
 }
 
