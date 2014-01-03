@@ -19,6 +19,9 @@ public class Iccloader : Object {
     private HashTable<int, string> icc_data;
     private string dispwin_cmd;
     private Gtk.Entry dispwin_entry;
+    private Gtk.ImageMenuItem active_item;
+    private Gtk.Image active_item_image;
+    private Gtk.Image old_item_image;
 
     CompareFunc<int> intcmp_reverse = (a, b) => {
         return (int) (a < b) - (int) (a > b);
@@ -39,6 +42,8 @@ public class Iccloader : Object {
         }
         tray_icon = new Gtk.StatusIcon.from_pixbuf (icon);
         tray_icon.tooltip_text = Config.PACKAGE_NAME;
+        tray_icon.popup_menu.connect (menu_popup);
+        active_item_image = new Gtk.Image.from_stock (Gtk.Stock.APPLY, Gtk.IconSize.MENU);
     }
 
     private void message_dialog (string errors, Gtk.MessageType message_type = Gtk.MessageType.ERROR) {
@@ -50,26 +55,33 @@ public class Iccloader : Object {
         msg.show ();
     }
 
-    public void setup_system_tray () {
+    public void setup_menu () {
         load_preferences ();
         menu = new Gtk.Menu();
-        // ICC color temperature menu items
+        // ICC menu items
         if (icc_data.size () > 0) {
+            // color temperatures
             var temps = icc_data.get_keys ();
             temps.sort (intcmp_reverse);
             foreach (var temp in temps) {
                 var filename = icc_data.get (temp);
-                var menu_temp = new Gtk.ImageMenuItem.with_label (temp.to_string ());
+                var menu_temp = new Gtk.ImageMenuItem.with_label (@"$(temp)°K");
+                menu_temp.always_show_image = true;
+                menu_temp.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
                 menu_temp.activate.connect (() => {
                     // vala can't connect delegates to signals, unfortunately
                     load_icc (temp, filename);
+                    active_menu_item_image (menu_temp);
                 });
                 menu.append (menu_temp);
             }
+            // clear profile
             var menu_clear = new Gtk.ImageMenuItem.with_mnemonic ("_Clear profile");
+            menu_clear.image = new Gtk.Image.from_stock (Gtk.Stock.CLEAR, Gtk.IconSize.MENU);
             menu_clear.activate.connect (() => {
                 execute_cmd (@"$(dispwin_cmd) -c");
                 tray_icon.tooltip_text = Config.PACKAGE_NAME;
+                active_menu_item_image (menu_clear);
             });
             menu.append (menu_clear);
             // separator
@@ -88,7 +100,6 @@ public class Iccloader : Object {
         menu_quit.activate.connect (Gtk.main_quit);
         menu.append (menu_quit);
         menu.show_all ();
-        tray_icon.popup_menu.connect (menu_popup);
     }
 
     private void menu_popup (uint button, uint time) {
@@ -162,6 +173,18 @@ public class Iccloader : Object {
         if (execute_cmd (@"$(dispwin_cmd) -I \"$(filename)\"") && execute_cmd (@"$(dispwin_cmd) -L")) {
             tray_icon.tooltip_text = @"$(temp)°K";
         }
+    }
+
+    private void active_menu_item_image (Gtk.ImageMenuItem menu_item) {
+        if (active_item != null) {
+            if (active_item == menu_item) {
+                return;
+            }
+            active_item.image = old_item_image;
+        }
+        active_item = menu_item;
+        old_item_image = menu_item.image as Gtk.Image;
+        menu_item.image = active_item_image;
     }
 
     private void show_preferences () {
@@ -305,14 +328,14 @@ public class Iccloader : Object {
         }
         
         pref_window.close ();
-        setup_system_tray (); // to update the ICC menu items
+        setup_menu (); // to update the ICC menu items
     }
 }
 
 int main (string[] args) {
     Gtk.init (ref args);
     var iccloader = new Iccloader ();
-    iccloader.setup_system_tray ();
+    iccloader.setup_menu ();
 
     Gtk.main ();
     return 0;
