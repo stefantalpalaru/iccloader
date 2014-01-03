@@ -3,6 +3,11 @@ using Config2;
 using Gtk;
 using Posix;
 
+const string[] DISPWIN_NAMES = {
+    "dispwin",
+    "argyll-dispwin",
+};
+
 public class Iccloader : Object {
     private Gdk.Pixbuf icon;
     private Gtk.StatusIcon tray_icon;
@@ -12,10 +17,9 @@ public class Iccloader : Object {
     private KeyFile keyfile;
     private string config_path;
     private HashTable<int, string> icc_data;
+    private string dispwin_cmd;
+    private Gtk.Entry dispwin_entry;
 
-    /*CompareFunc<int> intcmp = (a, b) => {*/
-        /*return (int) (a > b) - (int) (a < b);*/
-    /*};*/
     CompareFunc<int> intcmp_reverse = (a, b) => {
         return (int) (a < b) - (int) (a > b);
     };
@@ -35,11 +39,10 @@ public class Iccloader : Object {
         }
         tray_icon = new Gtk.StatusIcon.from_pixbuf (icon);
         tray_icon.tooltip_text = Config.PACKAGE_NAME;
-        tray_icon.visible = true;
     }
 
-    private void error_dialog (string errors) {
-        var msg = new Gtk.MessageDialog (null, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, errors);
+    private void message_dialog (string errors, Gtk.MessageType message_type = Gtk.MessageType.ERROR) {
+        var msg = new Gtk.MessageDialog (null, Gtk.DialogFlags.MODAL, message_type, Gtk.ButtonsType.CLOSE, errors);
         msg.icon = icon;
         msg.response.connect ((response_id) => {
                 msg.destroy ();
@@ -50,6 +53,7 @@ public class Iccloader : Object {
     public void setup_system_tray () {
         load_preferences ();
         menu = new Gtk.Menu();
+        // ICC color temperature menu items
         if (icc_data.size () > 0) {
             var temps = icc_data.get_keys ();
             temps.sort (intcmp_reverse);
@@ -57,37 +61,29 @@ public class Iccloader : Object {
                 var filename = icc_data.get (temp);
                 var menu_temp = new Gtk.ImageMenuItem.with_label (temp.to_string ());
                 menu_temp.activate.connect (() => {
-                    string p_stdout, p_stderr;
-                    int p_status;
-                    var dispwin = "argyll-dispwin";
-                    try {
-                        Process.spawn_command_line_sync (@"$(dispwin) -I \"$(filename)\"", out p_stdout, out p_stderr, out p_status);
-                        Process.check_exit_status (p_status);
-                        Process.spawn_command_line_sync (@"$(dispwin) -L", out p_stdout, out p_stderr, out p_status);
-                        Process.check_exit_status (p_status);
-                        tray_icon.tooltip_text = @"$(temp)°K";
-                    } catch (Error e) {
-                        var error_msg = @"Error executing dispwin: $(e.message)\n";
-                        GLib.stderr.printf (error_msg);
-                        if (p_stdout != null) {
-                            GLib.stdout.puts (p_stdout);
-                        }
-                        if (p_stderr != null) {
-                            GLib.stdout.puts (p_stderr);
-                        }
-                        error_dialog (error_msg + p_stdout + p_stderr);
-                    }
+                    // vala can't connect delegates to signals, unfortunately
+                    load_icc (temp, filename);
                 });
                 menu.append (menu_temp);
             }
+            var menu_clear = new Gtk.ImageMenuItem.with_mnemonic ("_Clear profile");
+            menu_clear.activate.connect (() => {
+                execute_cmd (@"$(dispwin_cmd) -c");
+                tray_icon.tooltip_text = Config.PACKAGE_NAME;
+            });
+            menu.append (menu_clear);
+            // separator
             var menu_sep = new Gtk.SeparatorMenuItem ();
             menu.append (menu_sep);
         }
+        // preferences
         var menu_pref = new Gtk.ImageMenuItem.from_stock (Gtk.Stock.PREFERENCES, null);
         menu_pref.activate.connect (show_preferences);
         menu.append (menu_pref);
+        // separator
         var menu_sep = new Gtk.SeparatorMenuItem ();
         menu.append (menu_sep);
+        // quit
         var menu_quit = new Gtk.ImageMenuItem.from_stock (Gtk.Stock.QUIT, null);
         menu_quit.activate.connect (Gtk.main_quit);
         menu.append (menu_quit);
@@ -111,15 +107,60 @@ public class Iccloader : Object {
         }
         icc_data = new HashTable<int, string> (direct_hash, direct_equal);
         foreach (unowned string group in keyfile.get_groups ()) {
-            var temp = int.parse (group);
-            string filename;
-            try {
-                filename = keyfile.get_string (group, "filename");
-            } catch (Error e) {
-                GLib.stderr.printf ("Error loading preferences: %s\n", e.message);
-                continue;
+            if (group == "Config") {
+                try {
+                    dispwin_cmd = keyfile.get_string (group, "dispwin_cmd");
+                } catch (Error e) {
+                    GLib.stderr.printf ("Error loading preferences: %s\n", e.message);
+                }
+            } else {
+                var temp = int.parse (group);
+                string filename;
+                try {
+                    filename = keyfile.get_string (group, "filename");
+                } catch (Error e) {
+                    GLib.stderr.printf ("Error loading preferences: %s\n", e.message);
+                    continue;
+                }
+                icc_data.insert (temp, filename);
             }
-            icc_data.insert (temp, filename);
+        }
+        // defaults
+        if (dispwin_cmd == null) {
+            foreach (var name in DISPWIN_NAMES) {
+                if (Environment.find_program_in_path (name) != null) {
+                    dispwin_cmd = name;
+                    break;
+                }
+            }
+        }
+    }
+
+    private bool execute_cmd (string cmd) {
+        var success = true;
+        string p_stdout, p_stderr;
+        int p_status;
+        try {
+            Process.spawn_command_line_sync (cmd, out p_stdout, out p_stderr, out p_status);
+            Process.check_exit_status (p_status);
+        } catch (Error e) {
+            success = false;
+            var error_msg = @"Error executing dispwin: $(e.message)\n";
+            GLib.stderr.printf (error_msg);
+            if (p_stdout != null) {
+                GLib.stdout.puts (p_stdout);
+            }
+            if (p_stderr != null) {
+                GLib.stdout.puts (p_stderr);
+            }
+            message_dialog (error_msg + p_stdout + p_stderr);
+        }
+        return success;
+    }
+
+    private void load_icc (int temp, string filename) {
+        if (execute_cmd (@"$(dispwin_cmd) -I \"$(filename)\"") && execute_cmd (@"$(dispwin_cmd) -L")) {
+            tray_icon.tooltip_text = @"$(temp)°K";
         }
     }
 
@@ -143,6 +184,9 @@ public class Iccloader : Object {
         });
         var save_button = builder.get_object ("save") as Gtk.Button;
         save_button.clicked.connect (save_preferences);
+        dispwin_entry = builder.get_object ("dispwin") as Gtk.Entry;
+        dispwin_entry.set_text (dispwin_cmd);
+        dispwin_entry.focus_in_event.connect (disable_selection);
         // show previously saved preferences
         var temps = icc_data.get_keys ();
         temps.sort (intcmp_reverse);
@@ -152,6 +196,11 @@ public class Iccloader : Object {
         }
 
         pref_window.show_all ();
+    }
+
+    private bool disable_selection (Gdk.EventFocus event) {
+        dispwin_entry.select_region (0, 0);
+        return false;
     }
 
     private void add_pref_row_no_args () {
@@ -203,6 +252,7 @@ public class Iccloader : Object {
         keyfile = new KeyFile ();
         var hboxes = pref_vbox.get_children ();
         var errors = "";
+        // ICC data
         bool good_data;
         foreach (var hbox in hboxes) {
             good_data = true;
@@ -230,9 +280,21 @@ public class Iccloader : Object {
                 keyfile.set_string (temp, "filename", filename);
             }
         }
-        if (errors.length > 0) {
-            error_dialog (errors);
+        // dispwin
+        var dispwin = dispwin_entry.get_text ();
+        if (dispwin.length == 0) {
+            errors += "Empty 'dispwin' command\n";
+        } else if (Environment.find_program_in_path (dispwin) == null) {
+            errors += @"Could not find 'dispwin' command in PATH: '$(dispwin)'\n";
         } else {
+            dispwin_cmd = dispwin;
+            keyfile.set_string ("Config", "dispwin_cmd", dispwin_cmd);
+        }
+        
+        if (errors.length > 0) {
+            message_dialog (errors);
+        } else {
+            // write config file
             size_t length;
             var contents = keyfile.to_data (out length);
             try {
