@@ -7,7 +7,7 @@ iccloader_SOURCES =\
 
 MOSTLYCLEANFILES = src/config2.vala
 
-iccloader_VALAFLAGS = --target-glib @GLIB_VERSION@ --vapidir=$(top_srcdir)/vapi --pkg=config --pkg=gtk+-3.0 --pkg=posix
+iccloader_VALAFLAGS = --target-glib @GLIB_VERSION@ --vapidir=$(top_srcdir)/vapi --pkg=config --pkg=gtk+-3.0 --pkg=posix --pkg=gio-2.0
 
 LIBS =\
       @gtk_LIBS@

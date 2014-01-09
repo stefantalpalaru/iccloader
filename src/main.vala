@@ -23,6 +23,9 @@ public class Iccloader : Object {
     private Gtk.Image active_item_image;
     private Gtk.Image old_item_image;
     private int last_temp;
+    private string[] profile_dirs = {};
+    private string first_found_profile_dir = "";
+
 
     CompareFunc<int> intcmp_reverse = (a, b) => {
         return (int) (a < b) - (int) (a > b);
@@ -44,6 +47,55 @@ public class Iccloader : Object {
         tray_icon.tooltip_text = Config.PACKAGE_NAME;
         tray_icon.popup_menu.connect (menu_popup);
         active_item_image = new Gtk.Image.from_stock (Gtk.Stock.APPLY, Gtk.IconSize.MENU);
+
+        // profile dirs
+        var user_config_dir = Environment.get_user_config_dir ();
+        var user_home_dir = Environment.get_home_dir ();
+        create_profile_dirs (Path.build_filename (user_config_dir, "color"));
+        create_profile_dirs (Path.build_filename (user_home_dir, ".color"));
+        create_profile_dirs (Path.build_filename (user_home_dir, ".local", "share", "color"));
+        create_profile_dirs (Path.build_filename ("usr", "local", "share", "color"));
+        create_profile_dirs (Path.build_filename ("usr", "share", "color"));
+        create_profile_dirs (Path.build_filename ("var", "lib", "color"));
+        Regex icc_regex = null;
+        try {
+            icc_regex = new Regex ("\\.ic[cm]$", RegexCompileFlags.CASELESS);
+        } catch (Error e) {
+            GLib.stderr.printf ("Could not compile regex: %s\n", e.message);
+            Posix.exit (1);
+        }
+        foreach (unowned string profile_dir in profile_dirs) {
+            if (FileUtils.test (profile_dir, FileTest.IS_DIR)) {
+                if (first_found_profile_dir == "") {
+                    first_found_profile_dir = profile_dir;
+                }
+                // look for ICC profile files in this directory
+                var dir = File.new_for_commandline_arg (profile_dir);
+                var found_it = false;
+                try {
+                    var enumerator = dir.enumerate_children ("standard::*", FileQueryInfoFlags.NONE);
+                    FileInfo info;
+                    while ((info = enumerator.next_file ()) != null) {
+                        if (info.get_file_type () != FileType.DIRECTORY && icc_regex.match (info.get_name ())) {
+                            first_found_profile_dir = profile_dir;
+                            found_it = true;
+                            break;
+                        }
+                    }
+                } catch (Error e) {
+                    GLib.stderr.printf ("Could not list files in profile directory: %s\n", e.message);
+                }
+                if (found_it) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private void create_profile_dirs (string path) {
+        profile_dirs += Path.build_filename (path, "icc", "devices", "display");
+        profile_dirs += Path.build_filename (path, "icc", "devices");
+        profile_dirs += Path.build_filename (path, "icc");
     }
 
     private void message_dialog (string errors, Gtk.MessageType message_type = Gtk.MessageType.ERROR) {
@@ -231,7 +283,10 @@ public class Iccloader : Object {
         pref_window.icon = icon;
         pref_vbox = builder.get_object ("vbox") as Gtk.Box;
         var add_button = builder.get_object ("add_button") as Gtk.Button;
-        add_button.clicked.connect (add_pref_row_no_args);
+        add_button.clicked.connect (() => {
+                // stupid signal listener can't have args even when defaults are provided
+                add_pref_row ();
+        });
         var cancel_button = builder.get_object ("cancel") as Gtk.Button;
         cancel_button.clicked.connect (() => {
             pref_window.close ();
@@ -257,11 +312,6 @@ public class Iccloader : Object {
         return false;
     }
 
-    private void add_pref_row_no_args () {
-        // stupid signal listener can't have args even when defaults are provided
-        add_pref_row ();
-    }
-
     private void add_pref_row (string default_temp = "", string default_filename = "") {
         var hbox = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 0);
         hbox.expand = false;
@@ -284,13 +334,11 @@ public class Iccloader : Object {
         filter.add_pattern ("*.icm");
         filter.add_pattern ("*.ICM");
         chooser.set_filter (filter);
-        // default directory
-        var path = Path.build_filename (Environment.get_user_config_dir(), "color", "icc", "devices", "display");
-        if (FileUtils.test (path, FileTest.IS_DIR)) {
-            chooser.set_current_folder (path);
-        }
+        // default filename/directory
         if (default_filename != "") {
             chooser.set_filename (default_filename);
+        } else if (first_found_profile_dir != "") {
+            chooser.set_current_folder (first_found_profile_dir);
         }
         hbox.add (chooser);
         var remove_button = new Gtk.Button.from_stock (Gtk.Stock.REMOVE);
