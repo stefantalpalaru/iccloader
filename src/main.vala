@@ -25,6 +25,7 @@ public class Iccloader : Object {
     private int last_temp;
     private string[] profile_dirs = {};
     private string first_found_profile_dir = "";
+    private string[] profile_files = {};
 
 
     CompareFunc<int> intcmp_reverse = (a, b) => {
@@ -48,7 +49,12 @@ public class Iccloader : Object {
         tray_icon.popup_menu.connect (menu_popup);
         active_item_image = new Gtk.Image.from_stock (Gtk.Stock.APPLY, Gtk.IconSize.MENU);
 
-        // profile dirs
+        // profile dir
+        find_profile_dir ();
+    }
+
+    private void find_profile_dir () {
+        // possible profile dirs
         var user_config_dir = Environment.get_user_config_dir ();
         var user_home_dir = Environment.get_home_dir ();
         create_profile_dirs (Path.build_filename (user_config_dir, "color"));
@@ -57,6 +63,7 @@ public class Iccloader : Object {
         create_profile_dirs (Path.build_filename ("usr", "local", "share", "color"));
         create_profile_dirs (Path.build_filename ("usr", "share", "color"));
         create_profile_dirs (Path.build_filename ("var", "lib", "color"));
+        // regex for ICC files
         Regex icc_regex = null;
         try {
             icc_regex = new Regex ("\\.ic[cm]$", RegexCompileFlags.CASELESS);
@@ -64,22 +71,28 @@ public class Iccloader : Object {
             GLib.stderr.printf ("Could not compile regex: %s\n", e.message);
             Posix.exit (1);
         }
+        // dir listing
+        string filename;
+        File dir;
+        bool found_it;
+        FileEnumerator enumerator;
+        FileInfo info;
         foreach (unowned string profile_dir in profile_dirs) {
             if (FileUtils.test (profile_dir, FileTest.IS_DIR)) {
                 if (first_found_profile_dir == "") {
                     first_found_profile_dir = profile_dir;
                 }
                 // look for ICC profile files in this directory
-                var dir = File.new_for_commandline_arg (profile_dir);
-                var found_it = false;
+                dir = File.new_for_commandline_arg (profile_dir);
+                found_it = false;
                 try {
-                    var enumerator = dir.enumerate_children ("standard::*", FileQueryInfoFlags.NONE);
-                    FileInfo info;
+                    enumerator = dir.enumerate_children ("standard::*", FileQueryInfoFlags.NONE);
                     while ((info = enumerator.next_file ()) != null) {
-                        if (info.get_file_type () != FileType.DIRECTORY && icc_regex.match (info.get_name ())) {
+                        filename = info.get_name ();
+                        if (info.get_file_type () != FileType.DIRECTORY && icc_regex.match (filename)) {
                             first_found_profile_dir = profile_dir;
                             found_it = true;
-                            break;
+                            profile_files += filename;
                         }
                     }
                 } catch (Error e) {
@@ -287,6 +300,8 @@ public class Iccloader : Object {
                 // stupid signal listener can't have args even when defaults are provided
                 add_pref_row ();
         });
+        var auto_add_button = builder.get_object ("auto_add_button") as Gtk.Button;
+        auto_add_button.clicked.connect (auto_add_profiles);
         var cancel_button = builder.get_object ("cancel") as Gtk.Button;
         cancel_button.clicked.connect (() => {
             pref_window.close ();
@@ -349,6 +364,34 @@ public class Iccloader : Object {
         hbox.add (remove_button);
         pref_vbox.pack_start (hbox, false);
         pref_window.show_all ();
+    }
+
+    private void auto_add_profiles () {
+        if (first_found_profile_dir == "") {
+            return;
+        }
+
+        // filenames existing right now in the preferences window
+        string[] existing_filenames = {};
+        var hboxes = pref_vbox.get_children ();
+        foreach (var hbox in hboxes) {
+            var box = hbox as Gtk.Box;
+            var elements = box.get_children ();
+            var chooser = elements.nth_data (2) as Gtk.FileChooserButton;
+            var existing_filename = chooser.get_filename ();
+            if (existing_filename != null) {
+                existing_filenames += existing_filename;
+            }
+        }
+        
+        string path;
+        foreach (unowned string filename in profile_files) {
+            path = Path.build_filename (first_found_profile_dir, filename);
+            if (path in existing_filenames) {
+                continue;
+            }
+            printf ("%s\n", path);
+        }
     }
 
     // only used from the Preferences window

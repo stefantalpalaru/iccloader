@@ -21,6 +21,7 @@ IUSE=""
 
 RDEPEND="
 	dev-libs/glib:2
+	media-gfx/argyllcms
 	x11-libs/gtk+:3"
 DEPEND="${RDEPEND}
 	$(vala_depend)
