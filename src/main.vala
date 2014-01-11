@@ -68,7 +68,7 @@ public class Iccloader : Object {
         try {
             icc_regex = new Regex ("\\.ic[cm]$", RegexCompileFlags.CASELESS);
         } catch (Error e) {
-            GLib.stderr.printf ("Could not compile regex: %s\n", e.message);
+            GLib.stderr.printf ("Could not compile ICC regex: %s\n", e.message);
             Posix.exit (1);
         }
         // dir listing
@@ -296,11 +296,13 @@ public class Iccloader : Object {
         pref_window.icon = icon;
         pref_vbox = builder.get_object ("vbox") as Gtk.Box;
         var add_button = builder.get_object ("add_button") as Gtk.Button;
+        add_button.tooltip_text = "add a new ICC profile";
         add_button.clicked.connect (() => {
                 // stupid signal listener can't have args even when defaults are provided
                 add_pref_row ();
         });
         var auto_add_button = builder.get_object ("auto_add_button") as Gtk.Button;
+        auto_add_button.tooltip_text = "try to add ICC profiles automatically by looking in known profile directories";
         auto_add_button.clicked.connect (auto_add_profiles);
         var cancel_button = builder.get_object ("cancel") as Gtk.Button;
         cancel_button.clicked.connect (() => {
@@ -385,12 +387,41 @@ public class Iccloader : Object {
         }
         
         string path;
+        int temp;
+        var new_icc_data = new HashTable<int, string> (direct_hash, direct_equal);
+        Regex temp_regex = null;
+        try {
+            temp_regex = new Regex ("(\\d\\d\\d\\d)k", RegexCompileFlags.CASELESS);
+        } catch (Error e) {
+            GLib.stderr.printf ("Could not compile temperature regex: %s\n", e.message);
+            Posix.exit (1);
+        }
+        MatchInfo match_info;
         foreach (unowned string filename in profile_files) {
             path = Path.build_filename (first_found_profile_dir, filename);
             if (path in existing_filenames) {
                 continue;
             }
-            printf ("%s\n", path);
+            if (temp_regex.match (filename, 0, out match_info)) {
+                temp = int.parse (match_info.fetch (1));
+                new_icc_data[temp] = path;
+            }
+        }
+        var new_icc_profiles = new_icc_data.size ();
+        if (new_icc_profiles > 0) {
+            var temps = new_icc_data.get_keys ();
+            temps.sort (intcmp_reverse);
+            foreach (unowned int t in temps) {
+                path = new_icc_data.get (t);
+                add_pref_row (t.to_string (), path);
+            }
+            var plural = "";
+            if (new_icc_profiles > 1) {
+                plural = "s";
+            }
+            message_dialog (@"$(new_icc_profiles) new ICC profile$(plural) found", Gtk.MessageType.INFO);
+        } else {
+            message_dialog ("no new ICC profiles found", Gtk.MessageType.INFO);
         }
     }
 
