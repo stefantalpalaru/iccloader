@@ -1,8 +1,3 @@
-using Config;
-using Config2;
-using Gtk;
-using Posix;
-
 const string[] DISPWIN_NAMES = {
     "dispwin",
     "argyll-dispwin",
@@ -37,11 +32,11 @@ public class Iccloader : Object {
         try {
             icon = Gtk.IconTheme.get_default ().load_icon (Config.PACKAGE, 48, 0);
         } catch (Error e) {
-            // GLib.stderr.printf ("Could not load the window icon from the default theme: %s\n", e.message);
+            // stderr.printf ("Could not load the window icon from the default theme: %s\n", e.message);
             try {
                 icon = new Gdk.Pixbuf.from_file (Path.build_filename (Config2.ICON_DIR, @"$(Config.PACKAGE).svg"));
             } catch (Error e) {
-                GLib.stderr.printf ("Could not load the window icon from the SVG file: %s\n", e.message);
+                stderr.printf ("Could not load the window icon from the SVG file: %s\n", e.message);
             }
         }
         tray_icon = new Gtk.StatusIcon.from_pixbuf (icon);
@@ -68,7 +63,7 @@ public class Iccloader : Object {
         try {
             icc_regex = new Regex ("\\.ic[cm]$", RegexCompileFlags.CASELESS);
         } catch (Error e) {
-            GLib.stderr.printf ("Could not compile ICC regex: %s\n", e.message);
+            stderr.printf ("Could not compile ICC regex: %s\n", e.message);
             Posix.exit (1);
         }
         // dir listing
@@ -96,7 +91,7 @@ public class Iccloader : Object {
                         }
                     }
                 } catch (Error e) {
-                    GLib.stderr.printf ("Could not list files in profile directory: %s\n", e.message);
+                    stderr.printf ("Could not list files in profile directory: %s\n", e.message);
                 }
                 if (found_it) {
                     break;
@@ -184,7 +179,7 @@ public class Iccloader : Object {
         try {
             keyfile.load_from_file(config_path, KeyFileFlags.NONE);
         } catch (Error e) {
-            GLib.stderr.printf ("Could not load the config file: %s\n", e.message);
+            stderr.printf ("Could not load the config file: %s\n", e.message);
         }
         icc_data = new HashTable<int, string> (direct_hash, direct_equal);
         foreach (unowned string group in keyfile.get_groups ()) {
@@ -192,7 +187,7 @@ public class Iccloader : Object {
                 try {
                     dispwin_cmd = keyfile.get_string (group, "dispwin_cmd");
                 } catch (Error e) {
-                    GLib.stderr.printf ("Error loading preferences: %s\n", e.message);
+                    stderr.printf ("Error loading preferences: %s\n", e.message);
                 }
                 try {
                     last_temp = keyfile.get_integer (group, "last_temp");
@@ -205,7 +200,7 @@ public class Iccloader : Object {
                 try {
                     filename = keyfile.get_string (group, "filename");
                 } catch (Error e) {
-                    GLib.stderr.printf ("Error loading preferences: %s\n", e.message);
+                    stderr.printf ("Error loading preferences: %s\n", e.message);
                     continue;
                 }
                 icc_data.insert (temp, filename);
@@ -232,12 +227,12 @@ public class Iccloader : Object {
         } catch (Error e) {
             success = false;
             var error_msg = @"Error executing dispwin: $(e.message)\n";
-            GLib.stderr.printf (error_msg);
+            stderr.printf (error_msg);
             if (p_stdout != null) {
-                GLib.stdout.puts (p_stdout);
+                stdout.puts (p_stdout);
             }
             if (p_stderr != null) {
-                GLib.stdout.puts (p_stderr);
+                stdout.puts (p_stderr);
             }
             message_dialog (error_msg + p_stdout + p_stderr);
         }
@@ -289,7 +284,7 @@ public class Iccloader : Object {
         try {
             builder.add_from_file (Path.build_filename (Config2.DATA_DIR, "preferences.ui"));
         } catch (Error e) {
-            GLib.stderr.printf ("UI loading error: %s\n", e.message);
+            stderr.printf ("UI loading error: %s\n", e.message);
             Posix.exit (1);
         }
         pref_window = builder.get_object ("dialog1") as Gtk.Dialog;
@@ -393,7 +388,7 @@ public class Iccloader : Object {
         try {
             temp_regex = new Regex ("(\\d\\d\\d\\d)k", RegexCompileFlags.CASELESS);
         } catch (Error e) {
-            GLib.stderr.printf ("Could not compile temperature regex: %s\n", e.message);
+            stderr.printf ("Could not compile temperature regex: %s\n", e.message);
             Posix.exit (1);
         }
         MatchInfo match_info;
@@ -496,7 +491,7 @@ public class Iccloader : Object {
         try {
             FileUtils.set_contents (config_path, contents, (ssize_t)length);
         } catch (Error e) {
-            GLib.stderr.printf ("Could not save the config file: %s\n", e.message);
+            stderr.printf ("Could not save the config file: %s\n", e.message);
         }
     }
 }
