@@ -34,7 +34,11 @@ EXTRA_DIST = autogen.sh\
 	     vapi\
 	     .gitignore\
 	     *.ebuild\
-		 src/solpos\
+		 src/solpos/*.c\
+		 src/solpos/*.h\
+		 src/solpos/*.vala\
+		 src/solpos/*.vapi\
+		 src/solpos/*.sh\
 	     $(EMPTY)
 
 src/config2.vala: src/config2.vala.in
