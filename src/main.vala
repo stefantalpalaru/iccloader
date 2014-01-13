@@ -21,6 +21,7 @@ public class Iccloader : Object {
     private string[] profile_dirs = {};
     private string first_found_profile_dir = "";
     private string[] profile_files = {};
+    private Solpos.Posdata posdata;
 
 
     CompareFunc<int> intcmp_reverse = (a, b) => {
@@ -46,6 +47,9 @@ public class Iccloader : Object {
 
         // profile dir
         find_profile_dir ();
+
+        // solar position data
+        posdata = {};
     }
 
     private void find_profile_dir () {
@@ -494,12 +498,30 @@ public class Iccloader : Object {
             stderr.printf ("Could not save the config file: %s\n", e.message);
         }
     }
+
+    public void solpos_test () {
+        var now = new DateTime.now_utc ();
+        posdata.init ();
+        posdata.longitude = 45.36f;
+        posdata.latitude = 8.80f;
+        posdata.timezone = 0f;
+        posdata.year = now.get_year ();
+        posdata.daynum = now.get_day_of_year ();
+        posdata.hour = now.get_hour ();
+        posdata.minute = now.get_minute ();
+        posdata.second = now.get_second ();
+        
+        var retval = posdata.solpos ();
+        posdata.decode (retval);
+        stdout.printf ("elevref: %f\n", posdata.elevref);
+    }
 }
 
 int main (string[] args) {
     Gtk.init (ref args);
     var iccloader = new Iccloader ();
     iccloader.setup_menu ();
+    iccloader.solpos_test ();
 
     Gtk.main ();
     return 0;
