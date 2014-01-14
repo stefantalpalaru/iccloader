@@ -2,6 +2,13 @@ const string[] DISPWIN_NAMES = {
     "dispwin",
     "argyll-dispwin",
 };
+// transition elevation values taken from redshift - http://jonls.dk/redshift/
+const float TRANSITION_LOW = -6;
+const float TRANSITION_HIGH = 3;
+
+public errordomain ConfigError {
+    INVALID,
+}
 
 public class Iccloader : Object {
     private Gdk.Pixbuf icon;
@@ -14,6 +21,8 @@ public class Iccloader : Object {
     private HashTable<int, string> icc_data;
     private string dispwin_cmd;
     private Gtk.Entry dispwin_entry;
+    private Gtk.Entry latitude_entry;
+    private Gtk.Entry longitude_entry;
     private Gtk.ImageMenuItem active_item;
     private Gtk.Image active_item_image;
     private Gtk.Image old_item_image;
@@ -22,6 +31,9 @@ public class Iccloader : Object {
     private string first_found_profile_dir = "";
     private string[] profile_files = {};
     private Solpos.Posdata posdata;
+    private string latitude = "";
+    private string longitude = "";
+    private bool auto_load = false;
 
 
     CompareFunc<int> intcmp_reverse = (a, b) => {
@@ -122,27 +134,29 @@ public class Iccloader : Object {
     public void setup_menu () {
         load_preferences ();
         menu = new Gtk.Menu();
+        
         // ICC menu items
         if (icc_data.size () > 0) {
             // color temperatures
             var temps = icc_data.get_keys ();
             temps.sort (intcmp_reverse);
             foreach (var temp in temps) {
-                var filename = icc_data.get (temp);
+                var filename = icc_data[temp];
                 var menu_temp = new Gtk.ImageMenuItem.with_label (@"$(temp)°K");
                 // without an image for all these menu items, scrollbars will appear when one is set
                 // for the active item
                 menu_temp.always_show_image = true;
                 menu_temp.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
                 menu_temp.activate.connect (() => {
-                    // vala can't connect delegates to signals so we always use closures
+                    // vala can't connect delegates to signals so we always use closures or methods with matching signatures
                     temp_item_activated (temp, filename, menu_temp);
                 });
                 menu.append (menu_temp);
-                if (temp == last_temp) {
+                if (temp == last_temp && !auto_load) {
                     temp_item_activated (temp, filename, menu_temp);
                 }
             }
+            
             // clear profile
             var menu_clear = new Gtk.ImageMenuItem.with_mnemonic ("_Clear profile");
             menu_clear.always_show_image = true;
@@ -154,10 +168,28 @@ public class Iccloader : Object {
                 set_last_temp (0);
             });
             menu.append (menu_clear);
+        }
+        
+        // auto load profile
+        if (icc_data.size () >= 2 && latitude != "" && longitude != "") {
+            var menu_auto = new Gtk.ImageMenuItem.with_mnemonic ("_Auto load profile");
+            menu_auto.always_show_image = true;
+            menu_auto.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
+            menu_auto.activate.connect (() => {
+                auto_load_profile (menu_auto);
+            });
+            menu.append (menu_auto);
+            if (auto_load) {
+                auto_load_profile (menu_auto);
+            }
+        }
+        
+        if (icc_data.size () > 0) {
             // separator
             var menu_sep = new Gtk.SeparatorMenuItem ();
             menu.append (menu_sep);
         }
+        
         // preferences
         var menu_pref = new Gtk.ImageMenuItem.from_stock (Gtk.Stock.PREFERENCES, null);
         menu_pref.always_show_image = true;
@@ -195,6 +227,22 @@ public class Iccloader : Object {
                 }
                 try {
                     last_temp = keyfile.get_integer (group, "last_temp");
+                } catch (Error e) {
+                    // don't care
+                }
+                try {
+                    latitude = keyfile.get_string (group, "latitude");
+                } catch (Error e) {
+                    // don't care
+                }
+                try {
+                    longitude = keyfile.get_string (group, "longitude");
+                } catch (Error e) {
+                    // don't care
+                }
+                try {
+                    auto_load = keyfile.get_boolean (group, "auto");
+                    last_temp = 0; // to force an auto_load_profile()
                 } catch (Error e) {
                     // don't care
                 }
@@ -249,13 +297,13 @@ public class Iccloader : Object {
         active_menu_item_image (menu_item);
     }
 
-    private void load_icc (int temp, string filename) {
+    private void load_icc (int temp, string filename, string extra_tooltip = "") {
         if (execute_cmd (@"$(dispwin_cmd) -I \"$(filename)\"") && execute_cmd (@"$(dispwin_cmd) -L")) {
-            tray_icon.tooltip_text = @"$(temp)°K";
+            tray_icon.tooltip_text = @"$(temp)°K$(extra_tooltip)";
         }
     }
 
-    private void set_last_temp (int temp) {
+    private void set_last_temp (int temp, bool auto = false) {
         last_temp = temp;
         if (last_temp != 0) {
             keyfile.set_integer ("Config", "last_temp", last_temp);
@@ -266,6 +314,8 @@ public class Iccloader : Object {
                 // don't care
             }
         }
+        auto_load = auto;
+        keyfile.set_boolean ("Config", "auto", auto_load);
         
         save_keyfile ();
     }
@@ -309,10 +359,22 @@ public class Iccloader : Object {
         });
         var save_button = builder.get_object ("save") as Gtk.Button;
         save_button.clicked.connect (save_preferences);
+        
+        // show previously saved preferences or defaults
         dispwin_entry = builder.get_object ("dispwin") as Gtk.Entry;
         dispwin_entry.set_text (dispwin_cmd);
         dispwin_entry.focus_in_event.connect (disable_selection);
-        // show previously saved preferences
+        
+        latitude_entry = builder.get_object ("latitude") as Gtk.Entry;
+        if (latitude != "") {
+            latitude_entry.set_text (latitude);
+        }
+        
+        longitude_entry = builder.get_object ("longitude") as Gtk.Entry;
+        if (longitude != "") {
+            longitude_entry.set_text (longitude);
+        }
+        
         var temps = icc_data.get_keys ();
         temps.sort (intcmp_reverse);
         foreach (var temp in temps) {
@@ -479,6 +541,37 @@ public class Iccloader : Object {
             keyfile.set_string ("Config", "dispwin_cmd", dispwin_cmd);
         }
 
+        // lat/lon
+        var lat = latitude_entry.get_text ();
+        if (lat.length > 0) {
+            double val;
+            if (!double.try_parse (lat, out val)) {
+                errors += "Could not parse the latitude\n";
+            } else {
+                if (val < -90 || val > 90) {
+                    errors += "The latitude should be between -90 and 90\n";
+                } else {
+                    latitude = lat;
+                    keyfile.set_string ("Config", "latitude", latitude);
+                }
+            }
+        }
+        
+        var lon = longitude_entry.get_text ();
+        if (lon.length > 0) {
+            double val;
+            if (!double.try_parse (lon, out val)) {
+                errors += "Could not parse the longitude\n";
+            } else {
+                if (val < -180 || val > 180) {
+                    errors += "The longitude should be between -180 and 180\n";
+                } else {
+                    longitude = lon;
+                    keyfile.set_string ("Config", "longitude", longitude);
+                }
+            }
+        }
+
         if (errors.length > 0) {
             message_dialog (errors);
         } else {
@@ -499,21 +592,95 @@ public class Iccloader : Object {
         }
     }
 
-    public void solpos_test () {
+    private float sun_elevation () throws ConfigError {
+        if (latitude == "" || longitude == "") {
+            throw new ConfigError.INVALID ("invalid latitude / longitude");
+        }
+
         var now = new DateTime.now_utc ();
         posdata.init ();
-        posdata.longitude = 45.36f;
-        posdata.latitude = 8.80f;
+        posdata.longitude = (float) double.parse(longitude);
+        posdata.latitude = (float) double.parse(latitude);
         posdata.timezone = 0f;
         posdata.year = now.get_year ();
         posdata.daynum = now.get_day_of_year ();
         posdata.hour = now.get_hour ();
         posdata.minute = now.get_minute ();
         posdata.second = now.get_second ();
-        
         var retval = posdata.solpos ();
         posdata.decode (retval);
-        stdout.printf ("elevref: %f\n", posdata.elevref);
+        
+        return posdata.elevref;
+    }
+
+    private int? auto_temp () throws ConfigError {
+        var temps = icc_data.get_keys ();
+        temps.sort (intcmp_reverse);
+        var num_temps = temps.length ();
+        if (num_temps == 0) {
+            throw new ConfigError.INVALID ("no available profiles");
+        } else if (num_temps == 1) {
+            return temps.nth_data (0);
+        } else {
+            // the highest color temparature is used during the day while the lowest one is used during the night
+            int day_temp = temps.nth_data (0);
+            int night_temp = temps.nth_data (num_temps - 1);
+            int best_temp = day_temp;
+            float elevation;
+            try {
+                elevation = sun_elevation ();
+            } catch (ConfigError e) {
+                throw e;
+            }
+            if (elevation < TRANSITION_LOW) {
+                best_temp = night_temp;
+            } else if (elevation > TRANSITION_HIGH) {
+                best_temp = day_temp;
+            } else {
+                // in the transition period
+                if (num_temps >= 3) {
+                    // linear interpolation
+                    float ideal_temp = (elevation - TRANSITION_LOW) / (TRANSITION_HIGH - TRANSITION_LOW) * (day_temp - night_temp) + night_temp;
+                    // find the closest color temperatures available
+                    int? high_temp = 0, low_temp = 0;
+                    for (int i = 0; i < num_temps; i++) {
+                        int? temp = temps.nth_data (i);
+                        if (temp <= ideal_temp) {
+                            low_temp = temp;
+                            if (i > 0) {
+                                high_temp = temps.nth_data (i - 1);
+                            } else {
+                                high_temp = low_temp;
+                            }
+                            break;
+                        }
+                    }
+                    // compare intervals
+                    if ((high_temp - ideal_temp) < (ideal_temp - low_temp)) {
+                        best_temp = high_temp;
+                    } else {
+                        best_temp = low_temp;
+                    }
+                }
+            }
+
+            return best_temp;
+        }
+    }
+
+    private void auto_load_profile (Gtk.ImageMenuItem menu_auto) {
+        try {
+            var temp = auto_temp ();
+            if (temp != null && temp != last_temp) {
+                /*print (@"auto temp: $(temp)\n");*/
+                var filename = icc_data[temp];
+                load_icc (temp, filename, " (auto)");
+                set_last_temp (temp, true);
+                active_menu_item_image (menu_auto);
+            }
+        } catch (Error e) {
+            stderr.printf ("Could not load auto-determined profile: %s\n", e.message);
+        }
     }
 }
 
@@ -521,7 +688,6 @@ int main (string[] args) {
     Gtk.init (ref args);
     var iccloader = new Iccloader ();
     iccloader.setup_menu ();
-    iccloader.solpos_test ();
 
     Gtk.main ();
     return 0;
