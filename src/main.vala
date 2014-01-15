@@ -34,7 +34,8 @@ public class Iccloader : Object {
     private string latitude = "";
     private string longitude = "";
     private bool auto_load = false;
-
+    private int auto_load_interval = 5; // minutes
+    TimeoutSource auto_load_timeout;
 
     CompareFunc<int> intcmp_reverse = (a, b) => {
         return (int) (a < b) - (int) (a > b);
@@ -176,6 +177,10 @@ public class Iccloader : Object {
             menu_auto.always_show_image = true;
             menu_auto.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
             menu_auto.activate.connect (() => {
+                if (auto_load) {
+                    return;
+                }
+                auto_load = true;
                 auto_load_profile (menu_auto);
             });
             menu.append (menu_auto);
@@ -672,7 +677,7 @@ public class Iccloader : Object {
         try {
             var temp = auto_temp ();
             if (temp != null && temp != last_temp) {
-                /*print (@"auto temp: $(temp)\n");*/
+                /*print (@"auto load $(temp)\n");*/
                 var filename = icc_data[temp];
                 load_icc (temp, filename, " (auto)");
                 set_last_temp (temp, true);
@@ -680,6 +685,21 @@ public class Iccloader : Object {
             }
         } catch (Error e) {
             stderr.printf ("Could not load auto-determined profile: %s\n", e.message);
+        }
+
+        // setup the periodic auto loading
+        if (auto_load_timeout == null) {
+            auto_load_timeout = new TimeoutSource.seconds (auto_load_interval * 60);
+            auto_load_timeout.set_callback (() => {
+                        if (!auto_load) {
+                            auto_load_timeout.destroy ();
+                            auto_load_timeout = null;
+                            return false;
+                        }
+                        auto_load_profile (menu_auto);
+                        return true;
+                    });
+            auto_load_timeout.attach (null);
         }
     }
 }
