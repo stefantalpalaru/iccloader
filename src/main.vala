@@ -1,3 +1,9 @@
+/* Copyright © 2014 - Stefan Talpalaru <stefantalpalaru@yahoo.com> */
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 const string[] DISPWIN_NAMES = {
     "dispwin",
     "argyll-dispwin",
@@ -34,7 +40,7 @@ public class Iccloader : Object {
     private string latitude = "";
     private string longitude = "";
     private bool auto_load = false;
-    private int auto_load_interval = 5; // minutes
+    private int auto_load_interval = 1; // minutes
     TimeoutSource auto_load_timeout;
 
     CompareFunc<int> intcmp_reverse = (a, b) => {

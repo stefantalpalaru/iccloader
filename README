@@ -1,5 +1,24 @@
+##About##
 
+Systray widget used to load ICC color profiles with different color temperatures, either on demand
+or automatically based on the sun's position.
 
-Known problems:
+iccloader's main inspiration is [redshift][1].
+
+##Usage##
+
+```sh
+iccloader &
+```
+
+##Screenshots##
+
+Screenshots using the Zukitwo GTK3 theme and Tango icons
+
+##Known problems##
+
 - "solpos" will stop working after 2050
+
+
+[1]: http://jonls.dk/redshift/
 
