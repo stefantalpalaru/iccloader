@@ -36,7 +36,11 @@ E.g.: for http://www.openstreetmap.org/#map=14/45.4298/9.1936 lon=45.4298 and la
 
 ##Screenshots##
 
-Screenshots using the Zukitwo GTK3 theme and Tango icons
+The screenshots are using the Zukitwo GTK3 theme and Tango icons.
+
+![](screenshots/iccloader_prefs_and_popup.jpg?raw=true "iccloader preferences and popup menu")
+
+![](screenshots/dispcalgui_color_temperature.jpg?raw=true "dispcalGUI - setting the color temperature in an ICC profile")
 
 ##Known problems##
 

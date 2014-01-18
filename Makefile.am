@@ -39,6 +39,7 @@ EXTRA_DIST = autogen.sh\
 		 src/solpos/*.vala\
 		 src/solpos/*.vapi\
 		 src/solpos/*.sh\
+		 screenshots\
 	     $(EMPTY)
 
 src/config2.vala: src/config2.vala.in
