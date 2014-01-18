@@ -25,7 +25,7 @@ appiconscalabledir = $(iconthemedir)/scalable/apps
 dist_appiconscalable_DATA = data/iccloader.svg
 
 uidir = $(pkgdatadir)/
-ui_DATA = data/*.ui\
+ui_DATA = data/preferences.ui\
 	  $(EMPTY)
 
 EXTRA_DIST = autogen.sh\
