@@ -7,7 +7,7 @@ EAPI=5
 AUTOTOOLS_AUTORECONF=yes
 VALA_MIN_API_VERSION=0.16
 
-EGIT_REPO_URI=""
+EGIT_REPO_URI="https://github.com/stefantalpalaru/iccloader.git"
 inherit autotools-utils git-2 vala
 
 DESCRIPTION=""
