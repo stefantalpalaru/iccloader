@@ -10,11 +10,11 @@ VALA_MIN_API_VERSION=0.16
 EGIT_REPO_URI="https://github.com/stefantalpalaru/iccloader.git"
 inherit autotools-utils git-2 vala
 
-DESCRIPTION=""
-HOMEPAGE=""
+DESCRIPTION="systray widget used to load ICC color profiles with different color temperatures"
+HOMEPAGE="https://github.com/stefantalpalaru/iccloader"
 SRC_URI=""
 
-LICENSE=""
+LICENSE="MPL-2.0"
 SLOT="0"
 KEYWORDS=""
 IUSE=""
