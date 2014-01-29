@@ -27,8 +27,8 @@ functionality first. If the files were generated using dispcalGUI and saved in
 one of the known directories, the corresponding color temperatures will be
 inferred from the file names.
 
-- when using OpenStreetMap to get your position, the longitude and latitude are the last 2 numbers in the URL.
-E.g.: for http://www.openstreetmap.org/#map=14/45.4298/9.1936 lon=45.4298 and lat=9.1936
+- when using OpenStreetMap to get your position, the latitude and longitude are the last 2 numbers in the URL.
+E.g.: for http://www.openstreetmap.org/#map=14/45.4298/9.1936 lat=45.4298 and lon=9.1936
 
 - if you want smoother transitions, create more ICC profiles in the day-night interval
 
