@@ -2,7 +2,7 @@
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const string[] DISPWIN_NAMES = {
     "dispwin",
@@ -56,7 +56,7 @@ public class Iccloader : Object {
             try {
                 icon = new Gdk.Pixbuf.from_file (Path.build_filename (Config2.ICON_DIR, @"$(Config.PACKAGE).svg"));
             } catch (Error e) {
-                stderr.printf ("Could not load the window icon from the SVG file: %s\n", e.message);
+                stderr.printf (_ ("Error loading the window icon from the SVG file: %s\n").printf (e.message));
             }
         }
         tray_icon = new Gtk.StatusIcon.from_pixbuf (icon);
@@ -86,7 +86,7 @@ public class Iccloader : Object {
         try {
             icc_regex = new Regex ("\\.ic[cm]$", RegexCompileFlags.CASELESS);
         } catch (Error e) {
-            stderr.printf ("Could not compile ICC regex: %s\n", e.message);
+            stderr.printf (_ ("Could not compile ICC regex: %s\n").printf (e.message));
             Posix.exit (1);
         }
         // dir listing
@@ -114,7 +114,7 @@ public class Iccloader : Object {
                         }
                     }
                 } catch (Error e) {
-                    stderr.printf ("Could not list files in profile directory: %s\n", e.message);
+                    stderr.printf (_ ("Could not list files in profile directory: %s\n").printf (e.message));
                 }
                 if (found_it) {
                     break;
@@ -165,7 +165,7 @@ public class Iccloader : Object {
             }
             
             // clear profile
-            var menu_clear = new Gtk.ImageMenuItem.with_mnemonic ("_Clear profile");
+            var menu_clear = new Gtk.ImageMenuItem.with_mnemonic (_ ("_Clear profile"));
             menu_clear.always_show_image = true;
             menu_clear.image = new Gtk.Image.from_stock (Gtk.Stock.CLEAR, Gtk.IconSize.MENU);
             menu_clear.activate.connect (() => {
@@ -179,7 +179,7 @@ public class Iccloader : Object {
         
         // auto load profile
         if (icc_data.size () >= 2 && latitude != "" && longitude != "") {
-            var menu_auto = new Gtk.ImageMenuItem.with_mnemonic ("_Auto load profile");
+            var menu_auto = new Gtk.ImageMenuItem.with_mnemonic (_ ("_Auto load profile"));
             menu_auto.always_show_image = true;
             menu_auto.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
             menu_auto.activate.connect (() => {
@@ -226,7 +226,7 @@ public class Iccloader : Object {
         try {
             keyfile.load_from_file(config_path, KeyFileFlags.NONE);
         } catch (Error e) {
-            stderr.printf ("Could not load the config file: %s\n", e.message);
+            stderr.printf (_ ("Could not load the config file: %s\n").printf (e.message));
         }
         icc_data = new HashTable<int, string> (direct_hash, direct_equal);
         foreach (unowned string group in keyfile.get_groups ()) {
@@ -234,7 +234,7 @@ public class Iccloader : Object {
                 try {
                     dispwin_cmd = keyfile.get_string (group, "dispwin_cmd");
                 } catch (Error e) {
-                    stderr.printf ("Error loading preferences: %s\n", e.message);
+                    stderr.printf (_ ("Error loading preferences: %s\n").printf (e.message));
                 }
                 try {
                     last_temp = keyfile.get_integer (group, "last_temp");
@@ -263,7 +263,7 @@ public class Iccloader : Object {
                 try {
                     filename = keyfile.get_string (group, "filename");
                 } catch (Error e) {
-                    stderr.printf ("Error loading preferences: %s\n", e.message);
+                    stderr.printf (_ ("Error loading preferences: %s\n").printf (e.message));
                     continue;
                 }
                 icc_data.insert (temp, filename);
@@ -289,7 +289,7 @@ public class Iccloader : Object {
             Process.check_exit_status (p_status);
         } catch (Error e) {
             success = false;
-            var error_msg = @"Error executing dispwin: $(e.message)\n";
+            var error_msg = _ ("Error executing dispwin: %s\n").printf (e.message);
             stderr.printf (error_msg);
             if (p_stdout != null) {
                 stdout.puts (p_stdout);
@@ -349,20 +349,20 @@ public class Iccloader : Object {
         try {
             builder.add_from_file (Path.build_filename (Config2.DATA_DIR, "preferences.ui"));
         } catch (Error e) {
-            stderr.printf ("UI loading error: %s\n", e.message);
+            stderr.printf (_ ("UI loading error: %s\n").printf (e.message));
             Posix.exit (1);
         }
         pref_window = builder.get_object ("dialog1") as Gtk.Dialog;
         pref_window.icon = icon;
         pref_vbox = builder.get_object ("vbox") as Gtk.Box;
         var add_button = builder.get_object ("add_button") as Gtk.Button;
-        add_button.tooltip_text = "add a new ICC profile";
+        add_button.tooltip_text = _ ("add a new ICC profile");
         add_button.clicked.connect (() => {
                 // stupid signal listener can't have args even when defaults are provided
                 add_pref_row ();
         });
         var auto_add_button = builder.get_object ("auto_add_button") as Gtk.Button;
-        auto_add_button.tooltip_text = "try to add ICC profiles automatically by looking in known profile directories";
+        auto_add_button.tooltip_text = _ ("try to add ICC profiles automatically by looking in known profile directories");
         auto_add_button.clicked.connect (auto_add_profiles);
         var cancel_button = builder.get_object ("cancel") as Gtk.Button;
         cancel_button.clicked.connect (() => {
@@ -412,7 +412,7 @@ public class Iccloader : Object {
         var label = new Gtk.Label ("°K");
         label.set_alignment (0, (float)0.5);
         hbox.add (label);
-        var chooser = new Gtk.FileChooserButton ("Select a corresponding ICC file", Gtk.FileChooserAction.OPEN);
+        var chooser = new Gtk.FileChooserButton (_ ("Select a corresponding ICC file"), Gtk.FileChooserAction.OPEN);
         chooser.expand = true;
         chooser.show_hidden = true; // doesn't work for some reason
         chooser.margin_left = 5;
@@ -465,7 +465,7 @@ public class Iccloader : Object {
         try {
             temp_regex = new Regex ("(\\d\\d\\d\\d)k", RegexCompileFlags.CASELESS);
         } catch (Error e) {
-            stderr.printf ("Could not compile temperature regex: %s\n", e.message);
+            stderr.printf (_ ("Could not compile temperature regex: %s\n").printf (e.message));
             Posix.exit (1);
         }
         MatchInfo match_info;
@@ -487,13 +487,9 @@ public class Iccloader : Object {
                 path = new_icc_data.get (t);
                 add_pref_row (t.to_string (), path);
             }
-            var plural = "";
-            if (new_icc_profiles > 1) {
-                plural = "s";
-            }
-            message_dialog (@"$(new_icc_profiles) new ICC profile$(plural) found", Gtk.MessageType.INFO);
+            message_dialog (ngettext ("%d new ICC profile found", "%d new ICC profiles found", new_icc_profiles).printf (new_icc_profiles), Gtk.MessageType.INFO);
         } else {
-            message_dialog ("no new ICC profiles found", Gtk.MessageType.INFO);
+            message_dialog (_ ("no new ICC profiles found"), Gtk.MessageType.INFO);
         }
     }
 
@@ -521,19 +517,19 @@ public class Iccloader : Object {
             var entry = elements.nth_data (0) as Gtk.Entry;
             var temp = entry.get_text ();
             if (temp.length == 0) {
-                errors += "Empty color temperature\n";
+                errors += _ ("Empty color temperature\n");
                 good_data = false;
             } else {
                 var temp_val = int.parse (temp);
                 if (temp_val == 0) {
-                    errors += "Invalid color temperature\n";
+                    errors += _ ("Invalid color temperature\n");
                     good_data = false;
                 }
             }
             var chooser = elements.nth_data (2) as Gtk.FileChooserButton;
             var filename = chooser.get_filename ();
             if (filename == null) {
-                errors += "No ICC file selected\n";
+                errors += _ ("No ICC file selected\n");
                 good_data = false;
             }
             if (good_data) {
@@ -544,9 +540,9 @@ public class Iccloader : Object {
         // dispwin
         var dispwin = dispwin_entry.get_text ();
         if (dispwin.length == 0) {
-            errors += "Empty 'dispwin' command\n";
+            errors += _ ("Empty 'dispwin' command\n");
         } else if (Environment.find_program_in_path (dispwin) == null) {
-            errors += @"Could not find 'dispwin' command in PATH: '$(dispwin)'\n";
+            errors += _ ("Could not find 'dispwin' command in PATH: '%s'\n").printf (dispwin);
         } else {
             dispwin_cmd = dispwin;
             keyfile.set_string ("Config", "dispwin_cmd", dispwin_cmd);
@@ -557,10 +553,10 @@ public class Iccloader : Object {
         if (lat.length > 0) {
             double val;
             if (!double.try_parse (lat, out val)) {
-                errors += "Could not parse the latitude\n";
+                errors += _ ("Could not parse the latitude\n");
             } else {
                 if (val < -90 || val > 90) {
-                    errors += "The latitude should be between -90 and 90\n";
+                    errors += _ ("The latitude should be between -90 and 90\n");
                 } else {
                     latitude = lat;
                     keyfile.set_string ("Config", "latitude", latitude);
@@ -572,10 +568,10 @@ public class Iccloader : Object {
         if (lon.length > 0) {
             double val;
             if (!double.try_parse (lon, out val)) {
-                errors += "Could not parse the longitude\n";
+                errors += _ ("Could not parse the longitude\n");
             } else {
                 if (val < -180 || val > 180) {
-                    errors += "The longitude should be between -180 and 180\n";
+                    errors += _ ("The longitude should be between -180 and 180\n");
                 } else {
                     longitude = lon;
                     keyfile.set_string ("Config", "longitude", longitude);
@@ -599,13 +595,13 @@ public class Iccloader : Object {
         try {
             FileUtils.set_contents (config_path, contents, (ssize_t)length);
         } catch (Error e) {
-            stderr.printf ("Could not save the config file: %s\n", e.message);
+            stderr.printf (_ ("Could not save the config file: %s\n"), e.message);
         }
     }
 
     private float sun_elevation () throws ConfigError {
         if (latitude == "" || longitude == "") {
-            throw new ConfigError.INVALID ("invalid latitude / longitude");
+            throw new ConfigError.INVALID (_ ("invalid latitude / longitude"));
         }
 
         var now = new DateTime.now_utc ();
@@ -629,7 +625,7 @@ public class Iccloader : Object {
         temps.sort (intcmp_reverse);
         var num_temps = temps.length ();
         if (num_temps == 0) {
-            throw new ConfigError.INVALID ("no available profiles");
+            throw new ConfigError.INVALID (_ ("no available profiles"));
         } else if (num_temps == 1) {
             return temps.nth_data (0);
         } else {
@@ -690,7 +686,7 @@ public class Iccloader : Object {
                 active_menu_item_image (menu_auto);
             }
         } catch (Error e) {
-            stderr.printf ("Could not load auto-determined profile: %s\n", e.message);
+            stderr.printf (_ ("Could not load auto-determined profile: %s\n"), e.message);
         }
 
         // setup the periodic auto loading
@@ -712,6 +708,15 @@ public class Iccloader : Object {
 
 int main (string[] args) {
     Gtk.init (ref args);
+
+    // work around a header inclusion order bug: https://bugzilla.gnome.org/show_bug.cgi?id=618931
+    const string gettext_package = Config.GETTEXT_PACKAGE;
+    // localization
+    Intl.bindtextdomain (gettext_package, Config2.LOCALE_DIR); 
+    Intl.bind_textdomain_codeset (gettext_package, "UTF-8"); 
+    Intl.textdomain (gettext_package); 
+    Intl.setlocale (LocaleCategory.MESSAGES, "");
+
     var iccloader = new Iccloader ();
     iccloader.setup_menu ();
 

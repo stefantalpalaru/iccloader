@@ -1552,6 +1552,9 @@ if [ "x$config" = "x" ] ; then
     $VERBOSE_ECHO "Could not locate the configure template (from `pwd`)"
 fi
 
+# intltool
+intltoolize --copy --automake
+
 # summarize
 $ECHO "done"
 $ECHO

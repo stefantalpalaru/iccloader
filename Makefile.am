@@ -1,4 +1,5 @@
 EMPTY =
+SUBDIRS = po
 bin_PROGRAMS = iccloader
 iccloader_SOURCES =\
 		   src/solpos/solpos.c\
@@ -45,6 +46,7 @@ EXTRA_DIST = autogen.sh\
 src/config2.vala: src/config2.vala.in
 	sed -e 's#@ICON_DIR@#$(appiconscalabledir)#g' \
 		-e 's#@DATA_DIR@#$(pkgdatadir)#g' \
+		-e 's#@LOCALE_DIR@#$(datadir)/locale#g' \
 		$< > $(top_srcdir)/$@
 
 clean-local:
