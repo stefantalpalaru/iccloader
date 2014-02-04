@@ -52,7 +52,6 @@ public class Iccloader : Object {
         try {
             icon = Gtk.IconTheme.get_default ().load_icon (Config.PACKAGE, 48, 0);
         } catch (Error e) {
-            // stderr.printf ("Could not load the window icon from the default theme: %s\n", e.message);
             try {
                 icon = new Gdk.Pixbuf.from_file (Path.build_filename (Config2.ICON_DIR, @"$(Config.PACKAGE).svg"));
             } catch (Error e) {
@@ -679,7 +678,6 @@ public class Iccloader : Object {
         try {
             var temp = auto_temp ();
             if (temp != null && temp != last_temp) {
-                /*print (@"auto load $(temp)\n");*/
                 var filename = icc_data[temp];
                 load_icc (temp, filename, " (auto)");
                 set_last_temp (temp, true);
