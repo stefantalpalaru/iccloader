@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ICC loader 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-04 20:28+0100\n"
+"POT-Creation-Date: 2014-02-17 23:25+0100\n"
 "PO-Revision-Date: 2014-02-04 14:25+0100\n"
 "Last-Translator:  <stefantalpalaru@yahoo.com>\n"
 "Language-Team: Romanian\n"
@@ -18,74 +18,74 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
 
-#: ../src/main.vala:59
+#: ../src/main.vala:58
 #, c-format
 msgid "Error loading the window icon from the SVG file: %s\n"
 msgstr ""
 "Eroare apărută în timpul încărcării icoanei pentru fereastră din fișierul "
 "SVG: %s\n"
 
-#: ../src/main.vala:89
+#: ../src/main.vala:88
 #, c-format
 msgid "Could not compile ICC regex: %s\n"
 msgstr "Nu pot compila regex-ul pentru ICC: %s\n"
 
-#: ../src/main.vala:117
+#: ../src/main.vala:116
 #, c-format
 msgid "Could not list files in profile directory: %s\n"
 msgstr "Nu am putut lista fișierele din directorul cu profile: %s\n"
 
 #. clear profile
-#: ../src/main.vala:168
+#: ../src/main.vala:167
 msgid "_Clear profile"
 msgstr "_Șterge profilul"
 
 #. auto load profile
-#: ../src/main.vala:182
+#: ../src/main.vala:181
 msgid "_Auto load profile"
 msgstr "Încarcă _automat profilul"
 
-#: ../src/main.vala:229
+#: ../src/main.vala:228
 #, c-format
 msgid "Could not load the config file: %s\n"
 msgstr "Nu pot încărca fișierul de configurare: %s\n"
 
-#: ../src/main.vala:237 ../src/main.vala:266
+#: ../src/main.vala:236 ../src/main.vala:265
 #, c-format
 msgid "Error loading preferences: %s\n"
 msgstr "Eroare în timpul încărcării preferințelor: %s\n"
 
-#: ../src/main.vala:292
+#: ../src/main.vala:291
 #, c-format
 msgid "Error executing dispwin: %s\n"
 msgstr "Eroare în timpul execuției dispwin: %s\n"
 
-#: ../src/main.vala:352
+#: ../src/main.vala:351
 #, c-format
 msgid "UI loading error: %s\n"
 msgstr "Eroare în timpul încărcării UI: %s\n"
 
-#: ../src/main.vala:359
+#: ../src/main.vala:358
 msgid "add a new ICC profile"
 msgstr "adaugă un nou profil ICC"
 
-#: ../src/main.vala:365
+#: ../src/main.vala:364
 msgid ""
 "try to add ICC profiles automatically by looking in known profile directories"
 msgstr ""
 "încearcă să adaugi automat profilele ICC căutându-le în directoarele "
 "cunoscute"
 
-#: ../src/main.vala:415
+#: ../src/main.vala:414
 msgid "Select a corresponding ICC file"
 msgstr "Selectează un fișier ICC corespunzător"
 
-#: ../src/main.vala:468
+#: ../src/main.vala:467
 #, c-format
 msgid "Could not compile temperature regex: %s\n"
 msgstr "Nu am putut compila regex-ul pentru temperatură: %s\n"
 
-#: ../src/main.vala:490
+#: ../src/main.vala:489
 #, c-format
 msgid "%d new ICC profile found"
 msgid_plural "%d new ICC profiles found"
@@ -93,61 +93,61 @@ msgstr[0] "%d nou profil ICC găsit"
 msgstr[1] "%d noi profile ICC găsite"
 msgstr[2] "%d de noi profile ICC găsite"
 
-#: ../src/main.vala:492
+#: ../src/main.vala:491
 msgid "no new ICC profiles found"
 msgstr "nu a fost găsit niciun nou profil ICC"
 
-#: ../src/main.vala:520
+#: ../src/main.vala:519
 msgid "Empty color temperature\n"
 msgstr "Lipsește temperatura culorii\n"
 
-#: ../src/main.vala:525
+#: ../src/main.vala:524
 msgid "Invalid color temperature\n"
 msgstr "Temperatura culorii e invalidă\n"
 
-#: ../src/main.vala:532
+#: ../src/main.vala:531
 msgid "No ICC file selected\n"
 msgstr "Niciun fișier ICC nu a fost selectat\n"
 
-#: ../src/main.vala:543
+#: ../src/main.vala:542
 msgid "Empty 'dispwin' command\n"
 msgstr "Comanda 'dispwin' lipsește\n"
 
-#: ../src/main.vala:545
+#: ../src/main.vala:544
 #, c-format
 msgid "Could not find 'dispwin' command in PATH: '%s'\n"
 msgstr "Nu am găsit comanda 'dispwin' în PATH: '%s'\n"
 
-#: ../src/main.vala:556
+#: ../src/main.vala:555
 msgid "Could not parse the latitude\n"
 msgstr "Nu am putut procesa latitudinea\n"
 
-#: ../src/main.vala:559
+#: ../src/main.vala:558
 msgid "The latitude should be between -90 and 90\n"
 msgstr "Latitudinea trebuie să fie între -90 și 90\n"
 
-#: ../src/main.vala:571
+#: ../src/main.vala:570
 msgid "Could not parse the longitude\n"
 msgstr "Nu am putut procesa longitudinea\n"
 
-#: ../src/main.vala:574
+#: ../src/main.vala:573
 msgid "The longitude should be between -180 and 180\n"
 msgstr "Longitudinea trebuie să fie între -180 și 180\n"
 
-#: ../src/main.vala:598
+#: ../src/main.vala:597
 #, c-format
 msgid "Could not save the config file: %s\n"
 msgstr "Nu am putut salva fișierul de configurare: %s\n"
 
-#: ../src/main.vala:604
+#: ../src/main.vala:603
 msgid "invalid latitude / longitude"
 msgstr "latitudine / longitudine invalidă"
 
-#: ../src/main.vala:628
+#: ../src/main.vala:627
 msgid "no available profiles"
 msgstr "niciun profil disponibil"
 
-#: ../src/main.vala:689
+#: ../src/main.vala:687
 #, c-format
 msgid "Could not load auto-determined profile: %s\n"
 msgstr "Nu am putut încărca profilul determinat automat: %s\n"
@@ -179,3 +179,7 @@ msgstr "fișier ICC"
 #: ../data/preferences.ui.h:7
 msgid "Auto add"
 msgstr "Adaugă automat"
+
+#: ../data/iccloader.desktop.in.in.h:1
+msgid "manual/automated monitor color profile loader"
+msgstr "încărcător manual/automat de profile de culoare pentru monitor"

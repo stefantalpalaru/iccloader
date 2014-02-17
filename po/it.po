@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ICC loader 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-04 20:28+0100\n"
+"POT-Creation-Date: 2014-02-17 23:25+0100\n"
 "PO-Revision-Date: 2014-02-04 14:25+0100\n"
 "Last-Translator:  <stefantalpalaru@yahoo.com>\n"
 "Language-Team: Italian\n"
@@ -17,134 +17,134 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/main.vala:59
+#: ../src/main.vala:58
 #, c-format
 msgid "Error loading the window icon from the SVG file: %s\n"
 msgstr ""
 "Errore durante il caricamento dell'icona per la finestra dal file SVG: %s\n"
 
-#: ../src/main.vala:89
+#: ../src/main.vala:88
 #, c-format
 msgid "Could not compile ICC regex: %s\n"
 msgstr "Non ho potuto compilare il regex per l'ICC: %s\n"
 
-#: ../src/main.vala:117
+#: ../src/main.vala:116
 #, c-format
 msgid "Could not list files in profile directory: %s\n"
 msgstr "Non ho potuto elencare i file nella cartella dei profili: %s\n"
 
 #. clear profile
-#: ../src/main.vala:168
+#: ../src/main.vala:167
 msgid "_Clear profile"
 msgstr "_Cancela il profilo"
 
 #. auto load profile
-#: ../src/main.vala:182
+#: ../src/main.vala:181
 msgid "_Auto load profile"
 msgstr "Carica il profilo _automaticamente"
 
-#: ../src/main.vala:229
+#: ../src/main.vala:228
 #, c-format
 msgid "Could not load the config file: %s\n"
 msgstr "Non ho potuto caricare il file di configurazione: %s\n"
 
-#: ../src/main.vala:237 ../src/main.vala:266
+#: ../src/main.vala:236 ../src/main.vala:265
 #, c-format
 msgid "Error loading preferences: %s\n"
 msgstr "Errore durante il caricamento delle preferenze: %s\n"
 
-#: ../src/main.vala:292
+#: ../src/main.vala:291
 #, c-format
 msgid "Error executing dispwin: %s\n"
 msgstr "Errore durante l'esecuzione di dispwin: %s\n"
 
-#: ../src/main.vala:352
+#: ../src/main.vala:351
 #, c-format
 msgid "UI loading error: %s\n"
 msgstr "Errore durante il caricamento dell'UI: %s\n"
 
-#: ../src/main.vala:359
+#: ../src/main.vala:358
 msgid "add a new ICC profile"
 msgstr "aggiungi un nuovo profilo ICC"
 
-#: ../src/main.vala:365
+#: ../src/main.vala:364
 msgid ""
 "try to add ICC profiles automatically by looking in known profile directories"
 msgstr ""
 "prova ad aggiungere automaticamente i profili ICC cercandoli nelle cartelle "
 "conosciute"
 
-#: ../src/main.vala:415
+#: ../src/main.vala:414
 msgid "Select a corresponding ICC file"
 msgstr "Scegli un file ICC adatto"
 
-#: ../src/main.vala:468
+#: ../src/main.vala:467
 #, c-format
 msgid "Could not compile temperature regex: %s\n"
 msgstr "Non ho potuto compilare il regex per la temperatura: %s\n"
 
-#: ../src/main.vala:490
+#: ../src/main.vala:489
 #, c-format
 msgid "%d new ICC profile found"
 msgid_plural "%d new ICC profiles found"
 msgstr[0] "è stato trovato %d nuovo profilo"
 msgstr[1] "sono stati trovati %d nuovi profili"
 
-#: ../src/main.vala:492
+#: ../src/main.vala:491
 msgid "no new ICC profiles found"
 msgstr "non è stato trovato nessun nuovo profilo"
 
-#: ../src/main.vala:520
+#: ../src/main.vala:519
 msgid "Empty color temperature\n"
 msgstr "Manca la temperatura del colore\n"
 
-#: ../src/main.vala:525
+#: ../src/main.vala:524
 msgid "Invalid color temperature\n"
 msgstr "La temperatura del colore è invalida\n"
 
-#: ../src/main.vala:532
+#: ../src/main.vala:531
 msgid "No ICC file selected\n"
 msgstr "Nessun file ICC scelto\n"
 
-#: ../src/main.vala:543
+#: ../src/main.vala:542
 msgid "Empty 'dispwin' command\n"
 msgstr "Commando 'dispwin' vuoto\n"
 
-#: ../src/main.vala:545
+#: ../src/main.vala:544
 #, c-format
 msgid "Could not find 'dispwin' command in PATH: '%s'\n"
 msgstr "Non ho trovato il commando 'dispwin' nel PATH: '%s'\n"
 
-#: ../src/main.vala:556
+#: ../src/main.vala:555
 msgid "Could not parse the latitude\n"
 msgstr "Non ho potuto leggere la latitudine\n"
 
-#: ../src/main.vala:559
+#: ../src/main.vala:558
 msgid "The latitude should be between -90 and 90\n"
 msgstr "La latitudine deve avere valori tra -90 e 90\n"
 
-#: ../src/main.vala:571
+#: ../src/main.vala:570
 msgid "Could not parse the longitude\n"
 msgstr "Non ho potuto leggere la longitudine\n"
 
-#: ../src/main.vala:574
+#: ../src/main.vala:573
 msgid "The longitude should be between -180 and 180\n"
 msgstr "La longitudine deve avere valori tra -180 e 180\n"
 
-#: ../src/main.vala:598
+#: ../src/main.vala:597
 #, c-format
 msgid "Could not save the config file: %s\n"
 msgstr "Non ho potuto salvare il file di configurazione: %s\n"
 
-#: ../src/main.vala:604
+#: ../src/main.vala:603
 msgid "invalid latitude / longitude"
 msgstr "latitudine / longitudine invalida"
 
-#: ../src/main.vala:628
+#: ../src/main.vala:627
 msgid "no available profiles"
 msgstr "nessun profilo disponibile"
 
-#: ../src/main.vala:689
+#: ../src/main.vala:687
 #, c-format
 msgid "Could not load auto-determined profile: %s\n"
 msgstr "Non ho potuto caricare il profilo determinato automaticamente: %s\n"
@@ -176,3 +176,7 @@ msgstr "file ICC"
 #: ../data/preferences.ui.h:7
 msgid "Auto add"
 msgstr "Aggiungi automaticamente"
+
+#: ../data/iccloader.desktop.in.in.h:1
+msgid "manual/automated monitor color profile loader"
+msgstr "caricatore manuale/automatico dei profili di colore per lo schermo"

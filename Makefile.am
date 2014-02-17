@@ -7,8 +7,6 @@ iccloader_SOURCES =\
 		   src/main.vala\
 		   $(EMPTY)
 
-MOSTLYCLEANFILES = src/config2.vala
-
 iccloader_VALAFLAGS = --target-glib @GLIB_VERSION@ --vapidir=$(top_srcdir)/vapi --vapidir=$(top_srcdir)/src/solpos --pkg=config --pkg=gtk+-3.0 --pkg=posix --pkg=gio-2.0 --pkg=solpos
 
 LIBS =\
@@ -29,9 +27,18 @@ uidir = $(pkgdatadir)/
 ui_DATA = data/preferences.ui\
 	  $(EMPTY)
 
+desktopdir = $(datadir)/applications
+desktop_in_files = data/@PACKAGE@.desktop.in
+desktop_DATA = data/@PACKAGE@.desktop
+@INTLTOOL_DESKTOP_RULE@
+
+MOSTLYCLEANFILES = src/config2.vala\
+				   $(desktop_DATA)
+
 EXTRA_DIST = autogen.sh\
 	     src/config2.vala.in\
 	     $(ui_DATA)\
+		 $(desktop_in_files).in\
 	     vapi\
 	     .gitignore\
 	     *.ebuild\

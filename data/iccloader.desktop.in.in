@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=@PACKAGE@
+_Comment=manual/automated monitor color profile loader
+Exec=@PACKAGE@
+Icon=@PACKAGE@
+Terminal=false
+Categories=GTK;Utility
