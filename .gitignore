@@ -24,6 +24,7 @@ po/.intltool-merge-cache
 *~
 *.o
 *_vala.stamp
+*_vala.stamp-t
 .deps
 .dirstamp
 /src/*.c
