@@ -353,6 +353,7 @@ public class Iccloader : Object {
         }
         pref_window = builder.get_object ("dialog1") as Gtk.Dialog;
         pref_window.icon = icon;
+        pref_window.set_titlebar(null);
         pref_vbox = builder.get_object ("vbox") as Gtk.Box;
         var add_button = builder.get_object ("add_button") as Gtk.Button;
         add_button.tooltip_text = _ ("add a new ICC profile");
