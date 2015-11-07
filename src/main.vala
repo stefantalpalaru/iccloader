@@ -308,7 +308,10 @@ public class Iccloader : Object {
     }
 
     private void load_icc (int temp, string filename, string extra_tooltip = "") {
-        if (execute_cmd (@"$(dispwin_cmd) -I \"$(filename)\"") && execute_cmd (@"$(dispwin_cmd) -L")) {
+        // dispwin will fail when asked to install ICC profiles with the '-I' option
+        // if they were created with older versions of argyllcms
+        /*if (execute_cmd (@"$(dispwin_cmd) -I \"$(filename)\"") && execute_cmd (@"$(dispwin_cmd) -L")) {*/
+        if (execute_cmd (@"$(dispwin_cmd) \"$(filename)\"")) {
             tray_icon.tooltip_text = @"$(temp)°K$(extra_tooltip)";
         }
     }
