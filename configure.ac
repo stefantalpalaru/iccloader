@@ -1,6 +1,6 @@
 AC_INIT([ICC loader], [0.3], [stefantalpalaru@yahoo.com], [iccloader], [http://foo.bar])
 
-AM_INIT_AUTOMAKE([subdir-objects])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADER([config.h])
 AC_PROG_CC
 AM_PROG_VALAC
