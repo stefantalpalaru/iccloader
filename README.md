@@ -1,11 +1,11 @@
-##About##
+## About
 
 Systray widget used to load ICC color profiles with different color
 temperatures, either on demand or automatically based on the sun's position.
 
 iccloader's main inspiration is [redshift][1].
 
-##Usage##
+## Usage
 
 ```sh
 iccloader &
@@ -20,9 +20,9 @@ lowest during the night and the rest for the transition period.
 The sun's position needed to determine these intervals is computed based on
 latitude and longitude using [solpos][4].
 
-##Build
+## Build
 
-###Generic
+### Generic
 
 ```sh
 ./autogen.sh
@@ -30,14 +30,14 @@ latitude and longitude using [solpos][4].
 make
 ```
 
-###Gentoo
+### Gentoo
 
 ```sh
 layman -a stefantalpalaru
 emerge iccloader
 ```
 
-##Tips##
+## Tips
 
 - when adding ICC/ICM files in the "Preferences" window, try the "Auto add"
 functionality first. If the files were generated using dispcalGUI and saved in
@@ -51,7 +51,7 @@ E.g.: for http://www.openstreetmap.org/#map=14/45.4298/9.1936 lat=45.4298 and lo
 
 - if you don't need color management and would like seamless transitions, try [redshift][1]
 
-##Screenshots##
+## Screenshots
 
 The screenshots are using the Zukitwo GTK3 theme and Tango icons.
 
@@ -59,15 +59,15 @@ The screenshots are using the Zukitwo GTK3 theme and Tango icons.
 
 ![](screenshots/dispcalgui_color_temperature.jpg?raw=true "dispcalGUI - setting the color temperature in an ICC profile")
 
-##Known problems##
+## Known problems
 
 - "solpos" will stop working after 2050
 
-##License
+## License
 
 MPL-2.0
 
-##Credits
+## Credits
 
 - author: Ștefan Talpalaru <stefantalpalaru@yahoo.com>
 
