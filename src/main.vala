@@ -1,4 +1,4 @@
-/* Copyright © 2014 - Stefan Talpalaru <stefantalpalaru@yahoo.com> */
+/* Copyright © 2014-2018 - Stefan Talpalaru <stefantalpalaru@yahoo.com> */
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -61,7 +61,7 @@ public class Iccloader : Object {
         tray_icon = new Gtk.StatusIcon.from_pixbuf (icon);
         tray_icon.tooltip_text = Config.PACKAGE_NAME;
         tray_icon.popup_menu.connect (menu_popup);
-        active_item_image = new Gtk.Image.from_stock (Gtk.Stock.APPLY, Gtk.IconSize.MENU);
+        active_item_image = new Gtk.Image.from_icon_name ("emblem-default", Gtk.IconSize.MENU);
 
         // profile dir
         find_profile_dir ();
@@ -152,7 +152,7 @@ public class Iccloader : Object {
                 // without an image for all these menu items, scrollbars will appear when one is set
                 // for the active item
                 menu_temp.always_show_image = true;
-                menu_temp.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
+                menu_temp.image = new Gtk.Image.from_icon_name (null, Gtk.IconSize.MENU);
                 menu_temp.activate.connect (() => {
                     // vala can't connect delegates to signals so we always use closures or methods with matching signatures
                     temp_item_activated (temp, filename, menu_temp);
@@ -166,7 +166,7 @@ public class Iccloader : Object {
             // clear profile
             var menu_clear = new Gtk.ImageMenuItem.with_mnemonic (_ ("_Clear profile"));
             menu_clear.always_show_image = true;
-            menu_clear.image = new Gtk.Image.from_stock (Gtk.Stock.CLEAR, Gtk.IconSize.MENU);
+            menu_clear.image = new Gtk.Image.from_icon_name ("edit-clear", Gtk.IconSize.MENU);
             menu_clear.activate.connect (() => {
                 execute_cmd (@"$(dispwin_cmd) -c");
                 tray_icon.tooltip_text = Config.PACKAGE_NAME;
@@ -180,7 +180,7 @@ public class Iccloader : Object {
         if (icc_data.size () >= 2 && latitude != "" && longitude != "") {
             var menu_auto = new Gtk.ImageMenuItem.with_mnemonic (_ ("_Auto load profile"));
             menu_auto.always_show_image = true;
-            menu_auto.image = new Gtk.Image.from_stock (Gtk.Stock.YES, Gtk.IconSize.MENU);
+            menu_auto.image = new Gtk.Image.from_icon_name (null, Gtk.IconSize.MENU);
             menu_auto.activate.connect (() => {
                 if (auto_load) {
                     return;
@@ -201,13 +201,17 @@ public class Iccloader : Object {
         }
         
         // preferences
-        var menu_pref = new Gtk.ImageMenuItem.from_stock (Gtk.Stock.PREFERENCES, null);
+        var menu_pref = new Gtk.ImageMenuItem.with_label (_ ("Preferences"));
+        var menu_pref_image = new Gtk.Image.from_icon_name ("preferences-system", Gtk.IconSize.MENU);
         menu_pref.always_show_image = true;
+        menu_pref.set_image (menu_pref_image);
         menu_pref.activate.connect (show_preferences);
         menu.append (menu_pref);
         // quit
-        var menu_quit = new Gtk.ImageMenuItem.from_stock (Gtk.Stock.QUIT, null);
+        var menu_quit = new Gtk.ImageMenuItem.with_label (_ ("Quit"));
+        var menu_quit_image = new Gtk.Image.from_icon_name ("application-exit", Gtk.IconSize.MENU);
         menu_quit.always_show_image = true;
+        menu_quit.set_image (menu_quit_image);
         menu_quit.activate.connect (Gtk.main_quit);
         menu.append (menu_quit);
         menu.show_all ();
@@ -433,7 +437,7 @@ public class Iccloader : Object {
             chooser.set_current_folder (first_found_profile_dir);
         }
         hbox.add (chooser);
-        var remove_button = new Gtk.Button.from_stock (Gtk.Stock.REMOVE);
+        var remove_button = new Gtk.Button.from_icon_name ("list-remove");
         remove_button.margin_left = 5;
         remove_button.clicked.connect (() => {
             pref_vbox.remove (hbox);
@@ -490,7 +494,7 @@ public class Iccloader : Object {
                 path = new_icc_data.get (t);
                 add_pref_row (t.to_string (), path);
             }
-            message_dialog (ngettext ("%d new ICC profile found", "%d new ICC profiles found", new_icc_profiles).printf (new_icc_profiles), Gtk.MessageType.INFO);
+            message_dialog (ngettext ("%u new ICC profile found", "%u new ICC profiles found", new_icc_profiles).printf (new_icc_profiles), Gtk.MessageType.INFO);
         } else {
             message_dialog (_ ("no new ICC profiles found"), Gtk.MessageType.INFO);
         }

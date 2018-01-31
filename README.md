@@ -26,7 +26,7 @@ latitude and longitude using [solpos][4].
 
 ```sh
 ./autogen.sh
-./configure VALAC=$(type -P valac-0.34)
+./configure VALAC=$(type -P valac-0.36)
 make
 ```
 
