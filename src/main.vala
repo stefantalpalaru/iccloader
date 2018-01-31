@@ -140,7 +140,7 @@ public class Iccloader : Object {
     public void setup_menu () {
         load_preferences ();
         menu = new Gtk.Menu();
-        
+
         // ICC menu items
         if (icc_data.size () > 0) {
             // color temperatures
@@ -162,7 +162,7 @@ public class Iccloader : Object {
                     temp_item_activated (temp, filename, menu_temp);
                 }
             }
-            
+
             // clear profile
             var menu_clear = new Gtk.ImageMenuItem.with_mnemonic (_ ("_Clear profile"));
             menu_clear.always_show_image = true;
@@ -175,7 +175,7 @@ public class Iccloader : Object {
             });
             menu.append (menu_clear);
         }
-        
+
         // auto load profile
         if (icc_data.size () >= 2 && latitude != "" && longitude != "") {
             var menu_auto = new Gtk.ImageMenuItem.with_mnemonic (_ ("_Auto load profile"));
@@ -193,13 +193,13 @@ public class Iccloader : Object {
                 auto_load_profile (menu_auto);
             }
         }
-        
+
         if (icc_data.size () > 0) {
             // separator
             var menu_sep = new Gtk.SeparatorMenuItem ();
             menu.append (menu_sep);
         }
-        
+
         // preferences
         var menu_pref = new Gtk.ImageMenuItem.with_label (_ ("Preferences"));
         var menu_pref_image = new Gtk.Image.from_icon_name ("preferences-system", Gtk.IconSize.MENU);
@@ -333,7 +333,7 @@ public class Iccloader : Object {
         }
         auto_load = auto;
         keyfile.set_boolean ("Config", "auto", auto_load);
-        
+
         save_keyfile ();
     }
 
@@ -377,22 +377,22 @@ public class Iccloader : Object {
         });
         var save_button = builder.get_object ("save") as Gtk.Button;
         save_button.clicked.connect (save_preferences);
-        
+
         // show previously saved preferences or defaults
         dispwin_entry = builder.get_object ("dispwin") as Gtk.Entry;
         dispwin_entry.set_text (dispwin_cmd);
         dispwin_entry.focus_in_event.connect (disable_selection);
-        
+
         latitude_entry = builder.get_object ("latitude") as Gtk.Entry;
         if (latitude != "") {
             latitude_entry.set_text (latitude);
         }
-        
+
         longitude_entry = builder.get_object ("longitude") as Gtk.Entry;
         if (longitude != "") {
             longitude_entry.set_text (longitude);
         }
-        
+
         var temps = icc_data.get_keys ();
         temps.sort (intcmp_reverse);
         foreach (var temp in temps) {
@@ -464,7 +464,7 @@ public class Iccloader : Object {
                 existing_filenames += existing_filename;
             }
         }
-        
+
         string path;
         int temp;
         var new_icc_data = new HashTable<int, string> (direct_hash, direct_equal);
@@ -513,7 +513,7 @@ public class Iccloader : Object {
             }
         }
         var errors = "";
-        
+
         // ICC data
         var hboxes = pref_vbox.get_children ();
         bool good_data;
@@ -543,7 +543,7 @@ public class Iccloader : Object {
                 keyfile.set_string (temp, "filename", filename);
             }
         }
-       
+
         // dispwin
         var dispwin = dispwin_entry.get_text ();
         if (dispwin.length == 0) {
@@ -570,7 +570,7 @@ public class Iccloader : Object {
                 }
             }
         }
-        
+
         var lon = longitude_entry.get_text ();
         if (lon.length > 0) {
             double val;
@@ -623,7 +623,7 @@ public class Iccloader : Object {
         posdata.second = now.get_second ();
         var retval = posdata.solpos ();
         posdata.decode (retval);
-        
+
         return posdata.elevref;
     }
 
@@ -718,9 +718,9 @@ int main (string[] args) {
     // work around a header inclusion order bug: https://bugzilla.gnome.org/show_bug.cgi?id=618931
     const string gettext_package = Config.GETTEXT_PACKAGE;
     // localization
-    Intl.bindtextdomain (gettext_package, Config2.LOCALE_DIR); 
-    Intl.bind_textdomain_codeset (gettext_package, "UTF-8"); 
-    Intl.textdomain (gettext_package); 
+    Intl.bindtextdomain (gettext_package, Config2.LOCALE_DIR);
+    Intl.bind_textdomain_codeset (gettext_package, "UTF-8");
+    Intl.textdomain (gettext_package);
     Intl.setlocale (LocaleCategory.MESSAGES, "");
 
     var iccloader = new Iccloader ();
