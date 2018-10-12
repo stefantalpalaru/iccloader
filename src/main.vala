@@ -256,7 +256,9 @@ public class Iccloader : Object {
                 }
                 try {
                     auto_load = keyfile.get_boolean (group, "auto");
-                    last_temp = 0; // to force an auto_load_profile()
+                    if (auto_load) {
+                        last_temp = 0; // to force an auto_load_profile()
+                    }
                 } catch (Error e) {
                     // don't care
                 }
@@ -322,19 +324,45 @@ public class Iccloader : Object {
 
     private void set_last_temp (int temp, bool auto = false) {
         last_temp = temp;
-        if (last_temp != 0) {
-            keyfile.set_integer ("Config", "last_temp", last_temp);
-        } else {
+        auto_load = auto;
+        bool keyfile_needs_saving = false;
+
+        bool old_auto_load = auto;
+        try {
+            old_auto_load = keyfile.get_boolean ("Config", "auto");
+        } catch (Error e) {
+            // don't care
+        }
+        if (old_auto_load != auto_load) {
+            keyfile.set_boolean ("Config", "auto", auto_load);
+            keyfile_needs_saving = true;
+        }
+
+        if (!auto) {
+            // we don't need to write an automatically derived colour temperature in the config file
+            int old_last_temp = last_temp;
             try {
-                keyfile.remove_key ("Config", "last_temp");
+                old_last_temp = keyfile.get_integer ("Config", "last_temp");
             } catch (Error e) {
                 // don't care
             }
+            if (old_last_temp != last_temp) {
+                if (last_temp != 0) {
+                    keyfile.set_integer ("Config", "last_temp", last_temp);
+                } else {
+                    try {
+                        keyfile.remove_key ("Config", "last_temp");
+                    } catch (Error e) {
+                        // don't care
+                    }
+                }
+                keyfile_needs_saving = true;
+            }
         }
-        auto_load = auto;
-        keyfile.set_boolean ("Config", "auto", auto_load);
 
-        save_keyfile ();
+        if (keyfile_needs_saving) {
+            save_keyfile ();
+        }
     }
 
     private void active_menu_item_image (Gtk.ImageMenuItem menu_item) {
